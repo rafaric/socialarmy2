@@ -62,7 +62,7 @@ Borrar</a>
         {photos?.length > 0 && (
           <div className="flex gap-4">
           {photos.map(photo => (
-            <div className='h-36 w-auto rounded-md overflow-hidden'>
+            <div className='h-36 w-auto rounded-md overflow-hidden' key={photo}>
               <img src={photo} className='h-36' alt=''/>
             </div>
           ))}
