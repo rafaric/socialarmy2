@@ -24,7 +24,7 @@ function ProfilePage() {
       <Card noPadding={true} >
         <div className='relative'>
           <div className='h-36 overflow-hidden flex justify-center items-center'>
-            <Image src='https://images.unsplash.com/photo-1503152394-c571994fd383?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80' />
+            <Image src='https://images.unsplash.com/photo-1503152394-c571994fd383?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80' alt='avatar'/>
           </div>
           <div className='absolute top-[70px] left-3'>
             <Avatar size={'lg'} />

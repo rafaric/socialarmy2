@@ -10,7 +10,7 @@ function Avatar({size, url}) {
   //console.log(avatar)
   return (
     <div><div className={`${width} rounded-full overflow-hidden flex cursor-pointer `}>
-    <Image src={url} />
+    <Image src={url} alt={url} />
   </div></div>
   )
 }

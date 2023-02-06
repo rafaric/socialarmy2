@@ -68,8 +68,8 @@ async function addPhotos (ev) {
       {uploads.length > 0 && (
         <div className='flex gap-2 grow'>
           {uploads.map(upload =>(
-            <div >
-              <Image key={upload} src={upload} alt="up" className="w-28 h-24 rounded-md" />
+            <div key={upload}>
+              <Image  src={upload} alt="up" className="w-28 h-24 rounded-md" />
             </div>
           ))}
         </div>
