@@ -1,4 +1,5 @@
 import React from 'react'
+import Image from 'next/image'
 
 function Avatar({size, url}) {
   let width ='w-12 hover:opacity-70'
@@ -9,7 +10,7 @@ function Avatar({size, url}) {
   //console.log(avatar)
   return (
     <div><div className={`${width} rounded-full overflow-hidden flex cursor-pointer `}>
-    <img src={url} />
+    <Image src={url} />
   </div></div>
   )
 }

@@ -1,4 +1,5 @@
 import React from 'react'
+import Image from 'next/image'
 import { useContext } from 'react';
 import Avatar from './Avatar'
 import Card from './Card'
@@ -26,6 +27,7 @@ function PostFormCard({onPost}) {
       if (!response.error){
         setContent('');
         setUploads([]);
+
         if(onPost){
           onPost();
         }
@@ -58,7 +60,7 @@ async function addPhotos (ev) {
     <Card>
       <div className='flex gap-4 mb-2'>
         {profile && <Avatar url={profile.avatar} className='cursor-pointer hover:opacity-70'/>}
-        <textarea onChange={(e)=> setContent(e.target.value)} className='grow p-2' placeholder={'En que estás pensando??'} />
+        <textarea onChange={(e)=> setContent(e.target.value)} value={content} className='grow p-2' placeholder={'En que estás pensando??'} />
       </div>
       {isUploading && (
         <BeatLoader color='#9333EA'/>
@@ -67,7 +69,7 @@ async function addPhotos (ev) {
         <div className='flex gap-2 grow'>
           {uploads.map(upload =>(
             <div >
-              <img src={upload} alt="up" className="w-28 h-24 rounded-md" />
+              <Image key={upload} src={upload} alt="up" className="w-28 h-24 rounded-md" />
             </div>
           ))}
         </div>
