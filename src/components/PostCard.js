@@ -1,22 +1,28 @@
 import React from 'react';
+import { useContext } from 'react';
 import Link from 'next/link';
 import { useState } from 'react';
 import Avatar from './Avatar';
 import Card from './Card';
 import ClickAwayListener from 'react-click-away-listener'
+import ReactTimeAgo from 'react-time-ago'
+import { UserContext } from '@/contexts/UserContext';
 
-function PostCard() {
+function PostCard({content,created_at,photos, profiles:authorProfile}) {
   const [isOpen, setIsOpen] = useState(false);
   const onClickAway = () =>{
     setIsOpen(false);
   }
+  const {profile:myprofile}  = useContext(UserContext);
+
   return (
     <Card className="">
       <div className='flex relative'>
-        <Link className='cursor-pointer hover:opacity-70' href={'/profile'}><Avatar/></Link>
+        <Link className='cursor-pointer hover:opacity-70' href={'/profile'}><Avatar url={authorProfile.avatar} /></Link>
         <div className='grow pl-4 '>
-          <p><Link href={'/profile'} className='font-semibold hover:underline cursor-pointer hover:text-purple-300'>Rafael Strongoli</Link> ha compartido un <a className='text-blue-500 hover:underline cursor-pointer'>album</a></p>
-          <p className='font-light text-gray-600'>Hace 2 horas</p>
+          <p><Link href={'/profile/'+authorProfile.id} className='font-semibold hover:underline cursor-pointer hover:text-purple-300'>
+          {authorProfile.name}</Link> ha compartido un <a className='text-blue-500 hover:underline cursor-pointer'>album</a></p>
+          <p className='font-light text-gray-400 text-xs'><ReactTimeAgo date={created_at}/></p>
         </div>
         <button className='text-gray-400' onClick={()=> setIsOpen(true)}>
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
@@ -25,7 +31,7 @@ function PostCard() {
         </button>
         {isOpen && 
           <ClickAwayListener onClickAway={onClickAway}>
-            <div className='absolute top-9 bg-white rounded-md border p-3 gap-2 right-1 flex flex-col shadow-md'>
+            <div className='absolute top-9 bg-white rounded-md border p-3 gap-2 right-1 flex flex-col shadow-md z-10'>
               <a className='flex gap-2 py-2 hover:bg-purple-200/50 -mx-2 px-2   hover:py-2 rounded-md hover:shadow-md transition-all hover:scale-105'>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
@@ -52,11 +58,19 @@ Borrar</a>
         
       </div>
       <div>
-        <p className='px-1 py-5 text-sm'>Dolor occaecat sunt duis id cillum fugiat proident. Ad consectetur amet velit in exercitation consectetur. Nisi tempor consequat excepteur esse elit commodo et qui nulla laboris elit aliquip proident. Excepteur ullamco do aliquip ut aliquip nulla et magna veniam enim consequat. Ad minim occaecat excepteur cupidatat eu fugiat excepteur sint magna ad ullamco irure.</p>
-        <div className='rounded-md overflow-hidden'>
-
+        <p className='px-1 py-5 text-sm'>{content}</p>
+        {photos?.length > 0 && (
+          <div className="flex gap-4">
+          {photos.map(photo => (
+            <div className='h-36 w-auto rounded-md overflow-hidden'>
+              <img src={photo} className='h-36' alt=''/>
+            </div>
+          ))}
+          </div>
+        )}
+        {/* <div className='rounded-md overflow-hidden'>
           <img src='https://images.unsplash.com/photo-1530841377377-3ff06c0ca713?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80' alt=''/>
-        </div>
+        </div> */}
       </div>
       <div className='flex mt-3 gap-5'>
         <button className='flex gap-2 items-center'>
@@ -80,7 +94,7 @@ Borrar</a>
       </div>
       <div className='flex mt-3 gap-4'>
         <div className=''>
-          <Avatar />
+          <Avatar url={myprofile?.avatar}/>
         </div>
         <div className='relative border grow rounded-full'>
           <textarea className='block w-full p-3 overflow-hidden h-12 rounded-full' placeholder='Deja un comentario...'/>

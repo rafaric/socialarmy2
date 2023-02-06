@@ -2,13 +2,22 @@ import React from 'react';
 import Card from './Card';
 import Link from 'next/link';
 import {useRouter} from 'next/router';
-
+import {useSupabaseClient} from '@supabase/auth-helpers-react'
+import { useSession } from "@supabase/auth-helpers-react";
 
 function NavigationCard() {
   const router = useRouter();
   const {pathname, asPath} =router;
   const activeElement ='flex md:gap-3 md:mx-0 py-4 bg-purple-500 text-white md:-mx-10 md:px-8 px-6 rounded-md shadow-lg shadow-purple-400';
   const hoveredElement = 'flex md:gap-3 md:mx-0 py-4 hover:bg-purple-200/50 md:-mx-2 md:px-6 px-4  hover:py-4 rounded-md hover:shadow-md transition-all hover:scale-105';
+  const supabase = useSupabaseClient()
+  
+  const session = useSession();
+  
+  async function signout() {
+    const { error } = await supabase.auth.signOut()
+    console.log(error);
+  }
   return (
     <><Card>
     <div className='flex md:block justify-center'>
@@ -37,7 +46,7 @@ function NavigationCard() {
       </svg>
       <span className='hidden md:block'>Notificaciones</span>
       </Link>
-    <Link className={pathname === '/logout' ? activeElement : hoveredElement} href='/login'>
+    <Link className={pathname === '/logout' ? activeElement : hoveredElement} href='/' onClick={signout}>
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
       </svg>
