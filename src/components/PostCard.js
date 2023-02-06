@@ -7,7 +7,7 @@ import Card from './Card';
 import ClickAwayListener from 'react-click-away-listener'
 import ReactTimeAgo from 'react-time-ago'
 import { UserContext } from '@/contexts/UserContext';
-import Image from 'next/image'
+
 
 function PostCard({content,created_at,photos, profiles:authorProfile}) {
   const [isOpen, setIsOpen] = useState(false);
@@ -64,7 +64,7 @@ Borrar</a>
           <div className="flex gap-4">
           {photos.map(photo => (
             <div className='h-36 w-auto rounded-md overflow-hidden' key={photo}>
-              <Image src={photo} className='h-36' alt=''/>
+              <img src={photo} className='h-36' alt=''/>
             </div>
           ))}
           </div>

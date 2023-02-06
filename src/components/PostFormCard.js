@@ -1,5 +1,5 @@
 import React from 'react'
-import Image from 'next/image'
+
 import { useContext } from 'react';
 import Avatar from './Avatar'
 import Card from './Card'
@@ -69,7 +69,7 @@ async function addPhotos (ev) {
         <div className='flex gap-2 grow'>
           {uploads.map(upload =>(
             <div key={upload}>
-              <Image  src={upload} alt="up" className="w-28 h-24 rounded-md" />
+              <img  src={upload} alt="up" className="w-28 h-24 rounded-md" />
             </div>
           ))}
         </div>
