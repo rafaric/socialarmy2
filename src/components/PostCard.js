@@ -15,15 +15,15 @@ function PostCard({content,created_at,photos, profiles:authorProfile}) {
     setIsOpen(false);
   }
   const {profile:myprofile}  = useContext(UserContext);
-
+  
   return (
     <Card className="">
       <div className='flex relative'>
-        <Link className='cursor-pointer hover:opacity-70' href={'/profile'}><Avatar url={authorProfile.avatar} /></Link>
+        <Link className='cursor-pointer hover:opacity-70' href={'/profile'}><Avatar url={authorProfile?.avatar} /></Link>
         <div className='grow pl-4 '>
-          <p><Link href={'/profile/'+authorProfile.id} className='font-semibold hover:underline cursor-pointer hover:text-purple-300'>
-          {authorProfile.name}</Link> ha compartido un <a className='text-blue-500 hover:underline cursor-pointer'>album</a></p>
-          <p className='font-light text-gray-400 text-xs'><ReactTimeAgo date={created_at}/></p>
+          <p><Link href={'/profile/'+authorProfile?.id} className='font-semibold hover:underline cursor-pointer hover:text-purple-300'>
+          {authorProfile?.name}</Link> ha compartido un <a className='text-blue-500 hover:underline cursor-pointer'>album</a></p>
+          <p className='font-light text-gray-400 text-xs'><ReactTimeAgo date={ (new Date(created_at)).getTime()}/></p>
         </div>
         <button className='text-gray-400' onClick={()=> setIsOpen(true)}>
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">

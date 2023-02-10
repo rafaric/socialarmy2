@@ -9,7 +9,7 @@ function NavigationCard() {
   const router = useRouter();
   const {pathname, asPath} =router;
   const activeElement ='flex md:gap-3 md:mx-0 py-4 bg-purple-500 text-white md:-mx-10 md:px-8 px-6 rounded-md shadow-lg shadow-purple-400';
-  const hoveredElement = 'flex md:gap-3 md:mx-0 py-4 hover:bg-purple-200/50 md:-mx-2 md:px-6 px-4  hover:py-4 rounded-md hover:shadow-md transition-all hover:scale-105';
+  const hoveredElement = 'flex md:gap-3 md:mx-0 py-4 hover:bg-purple-200/50 md:-mx-2 md:px-6 px-4  hover:-mx-2 rounded-md hover:shadow-md transition-all hover:scale-105';
   const supabase = useSupabaseClient()
   
   const session = useSession();
