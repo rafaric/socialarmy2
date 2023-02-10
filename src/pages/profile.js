@@ -7,7 +7,8 @@ import { useSession, useSupabaseClient } from '@supabase/auth-helpers-react'
 import Cover from '@/components/Cover';
 import ProfileTabs from '@/components/ProfileTabs';
 import ProfileContent from '@/components/ProfileContent';
-import { UserContextProvider } from '@/contexts/UserContext';
+import { UserContext } from '@/contexts/UserContext';
+
 
 
 function ProfilePage() {
