@@ -25,7 +25,7 @@ function Avatar({size, url, editable, onChange}) {
   //console.log(avatar)
   return (
     <div className={` ${width} relative`}>
-      <div className={`rounded-full overflow-hidden flex cursor-pointer `}>
+      <div className={`bg-red-500 rounded-full overflow-hidden flex cursor-pointer `}>
         <img src={url} alt={url} className='w-full'/>
       </div>
       {isUploading && <BeatLoader />}

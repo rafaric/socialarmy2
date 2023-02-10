@@ -34,8 +34,11 @@ export default function Home() {
   }, [session?.user?.id])
 
   const fetchPosts = () =>{
-    supabase.from('posts').select('id, content, created_at, photos, profiles(id, name, avatar)')
-    .order('created_at',{ascending:false}).then(result =>{
+    supabase.from('posts')
+    .select('id, content, created_at, photos, profiles(id, name, avatar)')
+    .is('parent', null)
+    .order('created_at',{ascending:false})
+    .then(result =>{
       setPosts(result.data)
     })
   }
