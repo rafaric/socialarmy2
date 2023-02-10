@@ -15,6 +15,7 @@ function PostCard({id, content,created_at,photos, profiles:authorProfile}) {
   const [likes, setLikes] = useState([]);
   const [comments, setComments] = useState([]);
   const [commentText, setCommentText] = useState('');
+  const [savedPosts, setSavedPosts] = useState([]);
   const supabase = useSupabaseClient();
   const onClickAway = () =>{
     setIsOpen(false);
@@ -54,6 +55,17 @@ function PostCard({id, content,created_at,photos, profiles:authorProfile}) {
     .eq('parent', id)
     .then(result => setComments(result.data))
   }
+  function savePost(){
+    supabase.from('saved_posts')
+    .insert({
+      user_id:myprofile.id,
+      post_id:id
+    })
+    .then(result=>{
+      setSavedPosts(result.data)
+    }
+    )
+  }
 
   useEffect(() => {
     fetchLikes();
@@ -92,7 +104,7 @@ function PostCard({id, content,created_at,photos, profiles:authorProfile}) {
         {isOpen && 
           <ClickAwayListener onClickAway={onClickAway}>
             <div className='absolute top-9 bg-white rounded-md border p-3 gap-2 right-1 flex flex-col shadow-md z-10'>
-              <a className='flex gap-2 py-2 hover:bg-purple-200/50 -mx-2 px-2   hover:py-2 rounded-md hover:shadow-md transition-all hover:scale-105'>
+              <a onClick={savePost} className='flex gap-2 py-2 hover:bg-purple-200/50 -mx-2 px-2   hover:py-2 rounded-md hover:shadow-md transition-all hover:scale-105'>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
                 </svg>
