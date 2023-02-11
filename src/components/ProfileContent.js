@@ -22,7 +22,10 @@ function ProfileContent({active, userId}) {
   
 
   async function userPosts(userId){
-    const {data} = await supabase.from('posts').select('id, content, created_at, author')
+    const {data} = await supabase
+    .from('posts')
+    .select('id, content, created_at, author')
+    .is('parent', null)
     .eq('author', userId);
     return data;
   }

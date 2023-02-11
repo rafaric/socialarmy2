@@ -13,7 +13,7 @@ export function UserContextProvider({children}){
       supabase.from('profile').select()
     .eq('id', session.user.id)
     .then((result)=>{
-      setProfile(result.data[0])
+      setProfile(result.data?.[0])
     })
     
   }, [session?.user?.id]);
