@@ -8,6 +8,7 @@ function SavedPostPage() {
   const [posts, setPosts] = useState([]);
   const session = useSession();
   const supabase = useSupabaseClient();
+
   useEffect(() => {
     if (!session?.user.id) {
       return;
@@ -25,6 +26,7 @@ function SavedPostPage() {
           .then((result) => setPosts(result.data));
       });
   }, [session?.user.id]);
+
   return (
     <Layout>
       <UserContextProvider>

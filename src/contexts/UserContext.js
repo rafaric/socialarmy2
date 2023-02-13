@@ -12,13 +12,15 @@ export function UserContextProvider({ children }) {
       return;
     }
     supabase
-      .from("profile")
+      .from("profiles")
       .select()
       .eq("id", session?.user?.id)
       .then((result) => {
+        console.log(result);
         setProfile(result?.data?.[0]);
       });
   }, [session?.user?.id]);
+
   return (
     <UserContext.Provider value={{ profile }}>{children}</UserContext.Provider>
   );

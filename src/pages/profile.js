@@ -31,7 +31,7 @@ function ProfilePage() {
 
     fetchUser();
     isFriend();
-  }, [userId, isFriend]);
+  }, [profile, userId, isFriend]);
 
   function fetchUser() {
     supabase

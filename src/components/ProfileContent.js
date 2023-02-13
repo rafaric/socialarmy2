@@ -21,15 +21,13 @@ function ProfileContent({ active, userId }) {
       loadPosts().then(() => {});
     }
     fetchProfile();
-  }, [userId]);
+  }, [userId, active]);
 
   useEffect(() => {
     if (active === "friends") {
-      fetchFriends()?.then(() => {
-        console.log(friends);
-      });
+      fetchFriends()?.then(() => {});
     }
-  }, []);
+  }, [userId, active]);
 
   async function fetchProfile() {
     const preProfile = await userProfile(userId);
@@ -78,16 +76,14 @@ function ProfileContent({ active, userId }) {
     supabase
       .from("friends")
       .select()
-      .eq("user_id", profile?.id)
+      .eq("user_id", userId)
       .then((response) => {
-        console.log(response.error);
         setFriends([]);
         const friendProfile = [];
         response?.data?.map(async (friend) => {
           const temp = await userProfile(friend.friend_id);
           friendProfile.push(temp);
           setFriends(friendProfile);
-          console.log("friend added to array" + friendProfile);
         });
       });
     // .then(() => console.log(friends));

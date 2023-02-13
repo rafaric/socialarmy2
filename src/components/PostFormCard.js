@@ -17,24 +17,28 @@ function PostFormCard({ onPost }) {
   const { profile } = useContext(UserContext);
 
   const createPost = () => {
-    supabase
-      .from("posts")
-      .insert({
-        author: session.user.id,
-        content,
-        photos: uploads,
-      })
-      .then((response) => {
-        console.log(response);
-        if (!response.error) {
-          setContent("");
-          setUploads([]);
+    if (content !== "") {
+      supabase
+        .from("posts")
+        .insert({
+          author: session.user.id,
+          content,
+          photos: uploads,
+        })
+        .then((response) => {
+          console.log(response);
+          if (!response.error) {
+            setContent("");
+            setUploads([]);
 
-          if (onPost) {
-            onPost();
+            if (onPost) {
+              onPost();
+            }
           }
-        }
-      });
+        });
+    } else {
+      alert("Ingrese un texto antes de postear.");
+    }
   };
 
   async function addPhotos(ev) {
@@ -72,7 +76,7 @@ function PostFormCard({ onPost }) {
         <textarea
           onChange={(e) => setContent(e.target.value)}
           value={content}
-          className="grow p-2"
+          className="grow align-middle pl-4 bg-gray-100 rounded-full placeholder:text-purple-500 text-purple-700"
           placeholder={"En que estás pensando??"}
         />
       </div>
