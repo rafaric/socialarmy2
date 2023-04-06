@@ -39,7 +39,7 @@ export async function fUserLikes(supabase, id, userId, setAlreadyLiked) {
     .select("id")
     .eq("user_id", userId)
     .eq("post_id", id);
-  if (data && data.length > 0) {
+  if (data && data?.length > 0) {
     // User already liked the post, remove like
     return setAlreadyLiked(true);
   } else {
@@ -102,7 +102,7 @@ const getFriendIds = async (supabase, userId) => {
 export const fFriends = async (supabase, userId, setFriends) => {
   const friendIds = await getFriendIds(supabase, userId);
 
-  if (!friendIds.length) {
+  if (!friendIds?.length) {
     return [];
   }
 
@@ -171,7 +171,7 @@ export const crearPost = async (
 
 export async function addPhotos(ev, supabase, setUploads, setIsUploading) {
   const files = ev.target.files;
-  if (files.length > 0) {
+  if (files?.length > 0) {
     setIsUploading(true);
     for (const file of files) {
       const newName = Date.now() + file.name;
@@ -199,7 +199,7 @@ export function fPhotos(supabase, userId, setPhotos) {
     .eq("author", userId)
     .then((response) => {
       const photosReal = response.data?.filter(
-        (elemento) => elemento.photos !== null && elemento.photos.length > 0
+        (elemento) => elemento.photos !== null && elemento.photos?.length > 0
       );
       setPhotos(photosReal);
     });

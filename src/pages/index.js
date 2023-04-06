@@ -47,7 +47,7 @@ export default function Home() {
     console.log(currentItems);
 
     const handlePageClick = (ev) => {
-      const newOffset = (ev.selected * itemsPerPage) % posts.length;
+      const newOffset = (ev.selected * itemsPerPage) % posts?.length;
       setItemOffset(newOffset);
     };
     return (

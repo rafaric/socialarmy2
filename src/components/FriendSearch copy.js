@@ -56,7 +56,7 @@ const FriendSearch = () => {
   return (
     <div>
       <Input value={searchText} onChange={handleInputChange} />
-      {suggestions.length > 0 &&
+      {suggestions?.length > 0 &&
         suggestions.map((friend) => (
           <div key={friend.id} onClick={() => handleFriendClick(friend)}>
             {" "}

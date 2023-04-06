@@ -174,7 +174,7 @@ const PostForm = ({ profile }) => {
               </div>
             </div>
 
-            {uploads.length > 0 && (
+            {uploads?.length > 0 && (
               <div className="inline-flex items-center">
                 <div className="inline-flex gap-2 grow">
                   {/* <span className={isUploading ? "loader" : ""}></span> */}

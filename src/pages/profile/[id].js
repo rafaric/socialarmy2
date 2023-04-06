@@ -362,7 +362,7 @@ export default function Profile() {
               <div className="grid md:grid-cols-2 gap-4">
                 {photos.map(
                   (elemento) =>
-                    elemento.photos.length > 1 &&
+                    elemento.photos?.length > 1 &&
                     elemento.photos.map((imagen) => (
                       <div
                         key={imagen.index}

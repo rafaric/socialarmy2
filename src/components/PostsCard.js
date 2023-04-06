@@ -106,7 +106,7 @@ const PostsCard = ({
       .eq("user_id", session.user.id)
       .eq("post_id", id);
 
-    if (data && data.length > 0) {
+    if (data && data?.length > 0) {
       // User already liked the post, remove like
       await supabase.from("likes").delete().eq("id", data[0].id);
       setAlreadyLiked(false);
@@ -156,7 +156,7 @@ const PostsCard = ({
           <p className="font-light text-gray-400 text-xs">
             {/* <ReactTimeAgo date={new Date(post.created_at).getTime()} /> */}
             Hace {formatDistanceToNow(fecha, { locale: es })} -
-            {tagged.length > 0 && (
+            {tagged?.length > 0 && (
               <small className="px-1 py-5 text-gray-400 font-semibold">
                 Con{" "}
                 <span className="hover:text-gray-700 cursor-default hover:font-bold hover:scale-105 hover:transition-all hover:duration-500">
