@@ -17,6 +17,7 @@
     "date-fns": "^2.29.3",
     "eslint": "8.36.0",
     "eslint-config-next": "13.2.4",
+    "file-type": "^18.2.1",
     "javascript-time-ago": "^2.5.9",
     "next": "13.2.4",
     "react": "18.2.0",
@@ -26,7 +27,8 @@
     "react-router-dom": "^6.9.0",
     "react-spring": "^9.7.1",
     "react-time-ago": "^7.2.1",
-    "use-supabase": "^2.0.1"
+    "use-supabase": "^2.0.1",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.14",

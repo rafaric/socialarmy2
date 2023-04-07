@@ -180,14 +180,18 @@ const PostForm = ({ profile }) => {
                   {/* <span className={isUploading ? "loader" : ""}></span> */}
                   {uploads.map((upload) => (
                     <div key={upload}>
-                      <img
-                        src={upload}
-                        alt="up"
-                        className="w-28 h-24 rounded-md"
-                      />
-                      <video className="w-28 h-24 rounded-md">
-                        <source src={upload} />
-                      </video>
+                      {upload.tipo === "image/jpeg" && (
+                        <img
+                          src={upload.url}
+                          alt="up"
+                          className="w-28 h-24 rounded-md"
+                        />
+                      )}
+                      {upload.tipo === "video/mp4" && (
+                        <video className="w-28 h-24 rounded-md">
+                          <source src={upload.url} />
+                        </video>
+                      )}
                     </div>
                   ))}
                 </div>

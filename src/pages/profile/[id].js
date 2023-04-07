@@ -11,6 +11,9 @@ import {
   tEditarAbout,
 } from "@/utils/fperfil";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
+import Head from "next/head";
+import Link from "next/link";
+
 import { useRouter } from "next/router";
 import React, { useContext, useEffect, useState } from "react";
 
@@ -22,32 +25,38 @@ export default function Profile() {
   const [editing, setEditing] = useState(false);
   const [about, setAbout] = useState("");
   const [photos, setPhotos] = useState([]);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(null); // contiene el usuario logueado
   const [coverUrl, setCoverUrl] = useState("");
   const [profileUrl, setProfileUrl] = useState("");
   const [activeTab, setActiveTab] = useState("about");
-  const { profile, setProfile, posts, setPosts } = useContext(UserContext);
-  const { friends, setFriends } = useContext(UserContext);
+  const { profile, friends, setFriends, setProfile, posts, setPosts } =
+    useContext(UserContext);
+  const [userFriends, setUserFriends] = useState([]);
+  const [isFriend, setIsFriend] = useState(false);
 
   useEffect(() => {
     setUser(session?.user.id);
     const hash = window.location.hash.substr(1);
     if (hash === "friends") setActiveTab("friends");
     fperfil(router.query.id, supabase, setProfile);
-  }, [session]);
-
-  useEffect(() => {
+    checkFriendship();
     if (profile?.id === user) {
+      //si el perfil que se llamo es el del usuario logueado, se puede editar todo.
+      console.log(user);
       setEditable(true);
     }
-    fFriends(supabase, router.query.id, setFriends);
+  }, [router]);
+
+  useEffect(() => {
+    fFriends(supabase, profile?.id, setFriends);
     profile?.cover
       ? setCoverUrl(profile?.cover)
       : setCoverUrl("/assets/images/cover-bg.jpg");
     setProfileUrl(profile?.avatar);
-    fuserPosts(supabase, router.query.id, setPosts);
-    fPhotos(supabase, router.query.id, setPhotos);
-  }, [profile]);
+    fuserPosts(supabase, profile?.id, setPosts);
+    fPhotos(supabase, profile?.id, setPhotos);
+    checkFriendship();
+  }, [profile, isFriend, editing]);
 
   function handleRemoveFriend(e, friend) {
     // e.preventDefault();
@@ -56,8 +65,26 @@ export default function Profile() {
       .delete()
       .eq("friend_id", friend.id)
       .then(() => alert("Amigo eliminado con exito"));
+    setIsFriend(false);
   }
 
+  function checkFriendship() {
+    fFriends(supabase, session?.user?.id, setUserFriends);
+    userFriends.map((friend) => {
+      if (friend.id === profile?.id) {
+        setIsFriend(true);
+      }
+    });
+  }
+
+  async function handleAddFriend(id, userId) {
+    await supabase
+      .from("friends")
+      .insert({ user_id: userId, friend_id: id })
+      .then(() => console.log("solicitud enviada"));
+    setIsFriend(true);
+  }
+  // console.log(response);
   async function handleCoverUpload(event) {
     const file = event.target.files[0];
     const fileExt = file.name.split(".").pop();
@@ -100,6 +127,9 @@ export default function Profile() {
 
   return (
     <Layout>
+      <Head>
+        <title>Perfil de {profile?.name}</title>
+      </Head>
       <div className="bg-gray-100 rounded-md">
         <div
           className="bg-cover bg-center h-48"
@@ -305,8 +335,11 @@ export default function Profile() {
                   </button>
                 </div>
               )}
-              {profile?.id !== user && (
-                <button className="absolute flex gap-2 items-center px-4 py-2 bg-purple-400 text-sm rounded-md hover:bg-purple-200 top-4 md:top-9 right-0">
+              {!isFriend && (
+                <button
+                  className="absolute flex gap-2 items-center px-4 py-2 bg-purple-400 text-sm rounded-md hover:bg-purple-200 top-4 md:top-9 right-0"
+                  onClick={() => handleAddFriend(profile?.id, user)}
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -348,7 +381,12 @@ export default function Profile() {
                         >
                           X
                         </button>
-                        <Avatar url={friend.avatar} size={"md"} />
+                        <Link
+                          className="cursor-pointer hover:opacity-70"
+                          href={`/profile/${friend.id}`}
+                        >
+                          <Avatar url={friend.avatar} size={"md"} />
+                        </Link>
                         <p>{friend.name}</p>
                       </div>
                     </Card>

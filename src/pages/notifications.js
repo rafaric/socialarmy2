@@ -12,9 +12,9 @@ function NotificationsPage() {
   const [notifications, setNotifications] = useState([]);
   const supabase = useSupabaseClient();
   const session = useSession();
-  const [perfiles, setPerfiles] = useState([]);
 
   useEffect(() => {
+    console.log(session?.user.id);
     fNotifications(supabase, session?.user.id, setNotifications);
   }, []);
 

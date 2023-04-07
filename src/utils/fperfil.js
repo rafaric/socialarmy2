@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from "uuid";
+
 export async function fperfil(userId, supabase, setProfile) {
   // console.log(userId);
   const { data } = await supabase.from("profiles").select("*").eq("id", userId);
@@ -174,15 +176,21 @@ export async function addPhotos(ev, supabase, setUploads, setIsUploading) {
   if (files?.length > 0) {
     setIsUploading(true);
     for (const file of files) {
+      console.log(file.type === "image/jpeg");
       const newName = Date.now() + file.name;
       const result = await supabase.storage
         .from("photos")
         .upload(newName, file);
       if (result.data) {
-        const url =
-          process.env.NEXT_PUBLIC_SUPABASE_URL +
-          "/storage/v1/object/public/photos/" +
-          result.data.path;
+        const url = {
+          id: uuidv4(),
+          tipo: file.type,
+          url:
+            process.env.NEXT_PUBLIC_SUPABASE_URL +
+            "/storage/v1/object/public/photos/" +
+            result.data.path,
+        };
+        console.log(url);
         setUploads((prevUploads) => [...prevUploads, url]);
       } else {
         console.log(result);
@@ -274,7 +282,7 @@ export async function fNotifications(supabase, userId, setNotifications) {
   await supabase
     .from("notifications")
     .select("*, profiles:user_receptor(*)")
-    .eq("user_receptor", userId)
+    .eq("user_emisor", userId)
     .order("created_at", { ascending: false })
     .then((response) => {
       console.log(response.data);

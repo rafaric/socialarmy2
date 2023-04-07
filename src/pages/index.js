@@ -41,7 +41,7 @@ export default function Home() {
   function PaginatedItems({ itemsPerPage }) {
     const [itemOffset, setItemOffset] = useState(0);
     const endOffset = itemOffset + itemsPerPage;
-    const currentItems = posts.slice(itemOffset, endOffset);
+    const currentItems = posts?.slice(itemOffset, endOffset);
 
     const pageCount = Math.ceil(posts?.length / itemsPerPage);
     console.log(currentItems);

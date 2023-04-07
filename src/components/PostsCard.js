@@ -136,7 +136,7 @@ const PostsCard = ({
   }
   // console.log(tagged);
   return (
-    <Card>
+    <Card key={id}>
       <div className="flex relative items-center mt-4">
         <Link
           className="cursor-pointer hover:opacity-70"
@@ -181,20 +181,27 @@ const PostsCard = ({
       {photos?.length > 0 && (
         <div className="flex gap-4 justify-center flex-wrap">
           {photos.map((photo) => (
-            <div className="w-[500px] rounded-md overflow-hidden" key={photo}>
-              <img
-                src={photo}
-                className="w-full max-h-[400px] object-cover overflow-hidden"
-                alt=""
-              />
-              <video
-                autoPlay
-                muted
-                controls
-                className="w-full max-h-[400px] object-cover overflow-hidden"
-              >
-                <source src={photo} />
-              </video>
+            <div
+              className="w-[500px] rounded-md overflow-hidden"
+              key={photo.id}
+            >
+              {photo.tipo === "image/jpeg" && (
+                <img
+                  src={photo.url}
+                  className="w-full max-h-[400px] object-cover overflow-hidden"
+                  alt=""
+                />
+              )}
+              {photo.tipo === "video/mp4" && (
+                <video
+                  autoPlay
+                  muted
+                  controls
+                  className="w-full max-h-[400px] object-cover overflow-hidden"
+                >
+                  <source src={photo.url} />
+                </video>
+              )}
             </div>
           ))}
         </div>
