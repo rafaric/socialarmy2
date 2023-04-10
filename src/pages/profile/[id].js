@@ -25,16 +25,16 @@ export default function Profile() {
   const [editing, setEditing] = useState(false);
   const [about, setAbout] = useState("");
   const [photos, setPhotos] = useState([]);
-  const [user, setUser] = useState(null); // contiene el usuario logueado
+  // const [user, setUser] = useState(null); // contiene el usuario logueado
   const [coverUrl, setCoverUrl] = useState("");
   const [profileUrl, setProfileUrl] = useState("");
   const [activeTab, setActiveTab] = useState("about");
-  const { profile, friends, setFriends, setProfile, posts, setPosts } =
+  const { user, profile, friends, setFriends, setProfile, posts, setPosts } =
     useContext(UserContext);
   const [userFriends, setUserFriends] = useState([]);
   const [isFriend, setIsFriend] = useState(false);
 
-  useEffect(() => {
+  /*  useEffect(() => {
     setUser(session?.user.id);
     const hash = window.location.hash.substr(1);
     if (hash === "friends") setActiveTab("friends");
@@ -45,9 +45,9 @@ export default function Profile() {
       console.log(user);
       setEditable(true);
     }
-  }, [router]);
+  }, [router]); */
 
-  useEffect(() => {
+  /*  useEffect(() => {
     fFriends(supabase, profile?.id, setFriends);
     profile?.cover
       ? setCoverUrl(profile?.cover)
@@ -56,7 +56,9 @@ export default function Profile() {
     fuserPosts(supabase, profile?.id, setPosts);
     fPhotos(supabase, profile?.id, setPhotos);
     checkFriendship();
-  }, [profile, isFriend, editing]);
+  }, [profile, isFriend, editing]); */
+  console.log(user);
+  console.log(friends);
 
   function handleRemoveFriend(e, friend) {
     // e.preventDefault();
