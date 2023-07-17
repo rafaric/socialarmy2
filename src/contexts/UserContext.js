@@ -1,4 +1,4 @@
-import { fFriends, fperfil } from "@/utils/fperfil";
+import { fFriends, fperfil } from "@/utils/fetching";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { createContext, useEffect, useState } from "react";
 
@@ -18,8 +18,7 @@ export const UserProvider = ({ children }) => {
     fperfil(session?.user.id, supabase, setProfile);
     setUser(session?.user.id);
     fFriends(supabase, session?.user.id, setFriends);
-  }, []);
-  console.log(profile, user, friends);
+  }, [session?.user.id, supabase]);
   return (
     <UserContext.Provider
       value={{

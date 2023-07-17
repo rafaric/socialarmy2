@@ -2,7 +2,7 @@
 import { useContext, useEffect, useState } from "react";
 import Avatar from "./Avatar";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
-import { crearPost, addPhotos, fposts, fFriends } from "@/utils/fperfil";
+import { crearPost, addPhotos, fposts, fFriends } from "@/utils/fetching";
 import FriendSelector from "./FriendSearch";
 import Link from "next/link";
 import { UserContext } from "@/contexts/UserContext";

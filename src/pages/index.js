@@ -3,7 +3,7 @@ import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import Layout from "@/components/Layout";
 import { useState, useContext, useEffect } from "react";
 import { UserContext } from "@/contexts/UserContext";
-import { fperfil, fposts, flikes, fFriends } from "@/utils/fperfil";
+import { fperfil, fposts, flikes, fFriends } from "@/utils/fetching";
 import PostsCard from "@/components/PostsCard";
 import PostForm from "@/components/PostForm";
 import Head from "next/head";

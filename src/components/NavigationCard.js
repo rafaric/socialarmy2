@@ -51,7 +51,7 @@ function NavigationCard() {
                 ? activeElement
                 : hoveredElement
             }
-            href={`/profile/${session?.user.id}/#friends`}
+            href={`/profile/${session?.user.id}?tab=friends`}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

@@ -4,7 +4,7 @@ import Layout from "@/components/Layout";
 import React, { useContext, useEffect, useState } from "react";
 import Link from "next/link";
 import { UserContext, UserProvider } from "@/contexts/UserContext";
-import { fNotifications } from "@/utils/fperfil";
+import { fNotifications } from "@/utils/fetching";
 import {
   SessionContextProvider,
   useSession,
@@ -12,7 +12,7 @@ import {
 } from "@supabase/auth-helpers-react";
 
 function NotificationsPage() {
-  const { profile } = useContext(UserContext);
+  /* const { profile } = useContext(UserContext);
   const [notifications, setNotifications] = useState([]);
   const supabase = useSupabaseClient();
   const session = useSession();
@@ -20,8 +20,14 @@ function NotificationsPage() {
   useEffect(() => {
     console.log(session?.user.id);
     fNotifications(supabase, session?.user.id, setNotifications);
-  }, []);
-  console.log(profile);
+  }, [supabase]);
+  console.log(profile); */
+  const supabase = useSupabaseClient();
+  const session = useSession();
+
+  console.log(session.user.id);
+  const notificaciones = fNotifications(supabase, session.user.id);
+  console.log(notificaciones);
   return (
     <SessionContextProvider>
       <UserProvider>

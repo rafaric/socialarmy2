@@ -14,7 +14,7 @@ import {
   fLikes,
   fUserLikes,
   toggleSave,
-} from "@/utils/fperfil";
+} from "@/utils/fetching";
 import { useSupabaseClient } from "@supabase/auth-helpers-react/dist";
 
 const PostsCard = ({

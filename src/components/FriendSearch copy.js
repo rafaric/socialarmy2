@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Input, Tag } from "antd";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
-import { fFriends } from "@/utils/fperfil";
+import { fFriends } from "@/utils/fetching";
 
 const FriendSearch = () => {
   const [searchText, setSearchText] = useState("");

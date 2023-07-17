@@ -278,7 +278,7 @@ export function toggleSave(savedPost, setSavedPost, supabase, id, userId) {
   }
 }
 
-export async function fNotifications(supabase, userId, setNotifications) {
+export async function fNotifications(supabase, userId) {
   await supabase
     .from("notifications")
     .select("*, profiles:user_receptor(*)")
@@ -286,6 +286,6 @@ export async function fNotifications(supabase, userId, setNotifications) {
     .order("created_at", { ascending: false })
     .then((response) => {
       console.log(response.data);
-      setNotifications(response.data);
+      return response.data;
     });
 }

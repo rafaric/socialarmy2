@@ -9,16 +9,17 @@ import {
   fperfil,
   fuserPosts,
   tEditarAbout,
-} from "@/utils/fperfil";
+} from "@/utils/fetching";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import Head from "next/head";
 import Link from "next/link";
-
 import { useRouter } from "next/router";
 import React, { useContext, useEffect, useState } from "react";
 
 export default function Profile() {
   const router = useRouter();
+  const { id, tab } = router.query;
+  const [activeTab, setActiveTab] = useState(tab || "about");
   const session = useSession();
   const supabase = useSupabaseClient();
   const [editable, setEditable] = useState(false);
@@ -28,7 +29,6 @@ export default function Profile() {
   // const [user, setUser] = useState(null); // contiene el usuario logueado
   const [coverUrl, setCoverUrl] = useState("");
   const [profileUrl, setProfileUrl] = useState("");
-  const [activeTab, setActiveTab] = useState("about");
   const { user, profile, friends, setFriends, setProfile, posts, setPosts } =
     useContext(UserContext);
   const [userFriends, setUserFriends] = useState([]);
@@ -57,9 +57,11 @@ export default function Profile() {
     fPhotos(supabase, profile?.id, setPhotos);
     checkFriendship();
   }, [profile, isFriend, editing]); */
-  console.log(user);
-  console.log(friends);
-
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    router.push(`/profile/${id}?tab=${tab}`, undefined, { shallow: true });
+  };
+  console.log(tab);
   function handleRemoveFriend(e, friend) {
     // e.preventDefault();
     supabase
@@ -213,33 +215,33 @@ export default function Profile() {
               className={`mr-6 py-2 cursor-pointer ${
                 activeTab === "about" ? "border-b-2 border-blue-500" : ""
               }`}
-              onClick={() => setActiveTab("about")}
+              onClick={(e) => handleTabChange("about", e)}
             >
-              Info
+              <Link href={`/profile/${id}?tab=about`}>Info</Link>
             </li>
             <li
               className={`mr-6 py-2 cursor-pointer ${
                 activeTab === "posts" ? "border-b-2 border-blue-500" : ""
               }`}
-              onClick={() => setActiveTab("posts")}
+              onClick={(e) => handleTabChange("posts", e)}
             >
-              Posts
+              <Link href={`/profile/${id}?tab=posts`}>Posteos</Link>
             </li>
             <li
               className={`mr-6 py-2 cursor-pointer ${
                 activeTab === "friends" ? "border-b-2 border-blue-500" : ""
               }`}
-              onClick={() => setActiveTab("friends")}
+              onClick={(e) => handleTabChange("friends", e)}
             >
-              Amigos
+              <Link href={`/profile/${id}?tab=friends`}>Amigos</Link>
             </li>
             <li
               className={`mr-6 py-2 cursor-pointer ${
                 activeTab === "photos" ? "border-b-2 border-blue-500" : ""
               }`}
-              onClick={() => setActiveTab("photos")}
+              onClick={(e) => handleTabChange("photos", e)}
             >
-              Fotos
+              <Link href={`/profile/${id}?tab=photos`}>Fotos</Link>
             </li>
           </ul>
           {activeTab === "about" && (
