@@ -30,3 +30,18 @@ yarn-error.log*
 
 # vercel
 .vercel
+
+# env files (all)
+.env
+.env.*
+
+# lock files (using bun)
+package-lock.json
+yarn.lock
+
+# build artifacts
+tsconfig.tsbuildinfo
+next-env.d.ts
+
+# tokens and secrets
+supabasetoken.txt
