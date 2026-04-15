@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase/browser";
 import type { Post, Photo, TaggedFriend, Profile } from "@/types";
 import { v4 as uuidv4 } from "uuid";
 

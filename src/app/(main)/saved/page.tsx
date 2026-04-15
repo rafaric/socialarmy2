@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import PostsCard from "@/components/PostsCard";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase/browser";
 import { useAuthStore } from "@/store/useAuthStore";
 import type { Post } from "@/types";
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Command } from "cmdk";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase/browser";
 import { useAuthStore } from "@/store/useAuthStore";
 import type { TaggedFriend } from "@/types";
 

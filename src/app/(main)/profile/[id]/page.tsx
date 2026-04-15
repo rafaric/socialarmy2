@@ -9,7 +9,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useProfile } from "@/hooks/useProfile";
 import { useFriends, useAddFriend, useRemoveFriend } from "@/hooks/useFriends";
 import { useUserPosts } from "@/hooks/usePosts";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase/browser";
 import Link from "next/link";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import type { Profile, Photo } from "@/types";

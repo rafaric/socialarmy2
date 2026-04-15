@@ -4,7 +4,7 @@ import Card from "./Card";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase/browser";
 
 function NavigationCard() {
   const pathname = usePathname();
