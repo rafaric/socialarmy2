@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Layout from "@/components/Layout";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useProfile } from "@/hooks/useProfile";
 import { usePosts } from "@/hooks/usePosts";
@@ -44,13 +43,13 @@ export default function Home() {
   const { data: posts = [], isLoading } = usePosts();
 
   return (
-    <Layout>
+    <>
       <PostForm profile={profile ?? null} />
       {isLoading ? (
         <p className="text-center text-gray-400 py-8">Cargando posts...</p>
       ) : (
         <PaginatedItems items={posts} itemsPerPage={5} />
       )}
-    </Layout>
+    </>
   );
 }

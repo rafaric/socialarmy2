@@ -1,10 +1,6 @@
-import NavigationCard from "./NavigationCard";
+import NavigationCard from "@/components/NavigationCard";
 
-interface LayoutProps {
-  children: React.ReactNode;
-}
-
-function Layout({ children }: LayoutProps) {
+export default function MainLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="md:flex md:pl-4 mt-16 w-full md:max-w-6xl md:gap-7">
       <aside className="md:w-60 w-[100vw] sticky top-0 z-1">
@@ -14,5 +10,3 @@ function Layout({ children }: LayoutProps) {
     </div>
   );
 }
-
-export default Layout;

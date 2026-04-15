@@ -1,7 +1,6 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import Layout from "@/components/Layout";
 import PostsCard from "@/components/PostsCard";
 import { supabase } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -36,7 +35,7 @@ const Saved = () => {
   const { data: posts = [], isLoading } = useSavedPosts(user);
 
   return (
-    <Layout>
+    <>
       <h1 className="text-2xl uppercase text-center font-bold text-white mb-6">
         Posts guardados
       </h1>
@@ -49,7 +48,7 @@ const Saved = () => {
           <PostsCard {...post} />
         </div>
       ))}
-    </Layout>
+    </>
   );
 };
 

@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Avatar from "@/components/Avatar";
 import Card from "@/components/Card";
-import Layout from "@/components/Layout";
 import PostsCard from "@/components/PostsCard";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useProfile } from "@/hooks/useProfile";
@@ -120,8 +119,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <Layout>
-      <div className="bg-gray-100 rounded-md">
+    <div className="bg-gray-100 rounded-md">
         {/* Cover */}
         <div className="bg-cover bg-center h-48" style={{ backgroundImage: `url(${coverUrl})` }}>
           {isOwn && (
@@ -254,6 +252,5 @@ export default function ProfilePage() {
           )}
         </div>
       </div>
-    </Layout>
   );
 }

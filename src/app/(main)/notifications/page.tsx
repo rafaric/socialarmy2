@@ -2,7 +2,6 @@
 
 import Avatar from "@/components/Avatar";
 import Card from "@/components/Card";
-import Layout from "@/components/Layout";
 import Link from "next/link";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -12,7 +11,7 @@ function NotificationsPage() {
   const { data: notifications = [], isLoading } = useNotifications(user);
 
   return (
-    <Layout>
+    <>
       <h1 className="md:text-2xl text-lg text-center uppercase font-bold text-white mb-6">
         Notificaciones
       </h1>
@@ -39,7 +38,7 @@ function NotificationsPage() {
           </div>
         ))}
       </Card>
-    </Layout>
+    </>
   );
 }
 
