@@ -103,7 +103,10 @@ export default function ProfileView({
     if (!currentUserId || !event.target.files?.[0]) return;
     const file = event.target.files[0];
     const fileName = `${currentUserId}/cover.${file.name.split(".").pop()}`;
-    const { error } = await supabase.storage.from("covers").upload(fileName, file, { upsert: true });
+    const { error } = await supabase.storage.from("covers").upload(fileName, file, {
+      upsert: true,
+      contentType: file.type || "image/jpeg",
+    });
     if (error) return;
     const { data: urlData } = supabase.storage.from("covers").getPublicUrl(fileName);
     setCoverUrl(urlData.publicUrl);
@@ -115,7 +118,10 @@ export default function ProfileView({
     if (!currentUserId || !event.target.files?.[0]) return;
     const file = event.target.files[0];
     const fileName = `${currentUserId}/profile.${file.name.split(".").pop()}`;
-    const { error } = await supabase.storage.from("avatars").upload(fileName, file, { upsert: true });
+    const { error } = await supabase.storage.from("avatars").upload(fileName, file, {
+      upsert: true,
+      contentType: file.type || "image/jpeg",
+    });
     if (error) return;
     const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(fileName);
     setProfileUrl(urlData.publicUrl);

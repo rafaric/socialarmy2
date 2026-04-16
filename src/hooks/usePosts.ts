@@ -126,7 +126,9 @@ export function useUploadPhotos() {
       const uploaded: Photo[] = [];
       for (const file of Array.from(files)) {
         const newName = Date.now() + file.name;
-        const { data, error } = await supabase.storage.from("photos").upload(newName, file);
+        const { data, error } = await supabase.storage.from("photos").upload(newName, file, {
+          contentType: file.type,
+        });
         if (error) throw error;
         uploaded.push({
           id: uuidv4(),
