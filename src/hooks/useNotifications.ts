@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/browser";
 import type { Notification } from "@/types";
@@ -32,6 +33,33 @@ export function useUnreadCount(userId: string | null) {
     },
     enabled: !!userId,
   });
+}
+
+export function useRealtimeNotifications(userId: string | null) {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const channel = supabase
+      .channel(`realtime-notifications-${userId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "notifications",
+          filter: `user_receptor=eq.${userId}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["notifications", userId] });
+          queryClient.invalidateQueries({ queryKey: ["notifications-unread", userId] });
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [userId, queryClient]);
 }
 
 export function useMarkAllRead(userId: string | null) {

@@ -6,7 +6,7 @@ import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useProfile } from "@/hooks/useProfile";
-import { usePosts } from "@/hooks/usePosts";
+import { usePosts, useRealtimePosts } from "@/hooks/usePosts";
 import PostsCard from "@/components/PostsCard";
 import PostForm from "@/components/PostForm";
 import OnboardingModal from "@/components/OnboardingModal";
@@ -17,6 +17,7 @@ export default function Home() {
   const { user } = useAuthStore();
   const { data: profile } = useProfile(user);
   const { data: posts = [], isLoading, isError, error } = usePosts();
+  useRealtimePosts();
   const [activeEra, setActiveEra] = useState<string | null>(null);
   const [activeMember, setActiveMember] = useState<string | null>(null);
 

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/browser";
 import type { Post, Photo, TaggedFriend, Profile } from "@/types";
@@ -121,6 +122,25 @@ export function useCreatePost() {
       queryClient.invalidateQueries({ queryKey: ["posts"] });
     },
   });
+}
+
+export function useRealtimePosts() {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("realtime-posts")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "posts" },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["posts"] });
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [queryClient]);
 }
 
 export function useUploadPhotos() {

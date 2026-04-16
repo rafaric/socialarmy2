@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useUnreadCount } from "@/hooks/useNotifications";
+import { useUnreadCount, useRealtimeNotifications } from "@/hooks/useNotifications";
 import { supabase } from "@/lib/supabase/browser";
 
 const NAV_ITEMS = [
@@ -53,6 +53,7 @@ function NavigationCard() {
   const router = useRouter();
   const { session, setSession, user } = useAuthStore();
   const { data: unreadCount = 0 } = useUnreadCount(user);
+  useRealtimeNotifications(user);
 
   async function signout() {
     await supabase.auth.signOut();
