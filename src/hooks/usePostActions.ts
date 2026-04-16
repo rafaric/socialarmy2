@@ -109,7 +109,7 @@ export function useComments(postId: string) {
     queryFn: async (): Promise<Comment[]> => {
       const { data, error } = await supabase
         .from("posts")
-        .select("*, profiles(*)")
+        .select("*, profiles!posts_author_fkey(*)")
         .eq("parent", postId);
       if (error) throw error;
       return (data ?? []) as Comment[];

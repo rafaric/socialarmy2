@@ -48,7 +48,7 @@ export function usePosts() {
     queryFn: async (): Promise<Post[]> => {
       const { data, error } = await supabase
         .from("posts")
-        .select("id, content, created_at, author, photos, tagged, parent, era, now_playing, profiles(id, name, avatar)")
+        .select("id, content, created_at, author, photos, tagged, parent, era, now_playing, profiles!posts_author_fkey(id, name, avatar)")
         .is("parent", null)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -63,7 +63,7 @@ export function useUserPosts(userId: string | null) {
     queryFn: async (): Promise<Post[]> => {
       const { data, error } = await supabase
         .from("posts")
-        .select("id, content, created_at, author, photos, tagged, parent, era, now_playing, profiles(id, name, avatar)")
+        .select("id, content, created_at, author, photos, tagged, parent, era, now_playing, profiles!posts_author_fkey(id, name, avatar)")
         .is("parent", null)
         .eq("author", userId!);
       if (error) throw error;
@@ -98,7 +98,8 @@ export function useCreatePost() {
 
       if (error) throw error;
 
-      await Promise.all(
+      // Fire notifications without blocking the success path
+      Promise.all(
         friends.map((friend) =>
           supabase.from("notifications").insert({
             notification_type: "post",
@@ -107,7 +108,9 @@ export function useCreatePost() {
             post_id: data.id,
           })
         )
-      );
+      ).catch(() => {
+        // Notifications are best-effort — don't block feed refresh on failure
+      });
 
       return data;
     },

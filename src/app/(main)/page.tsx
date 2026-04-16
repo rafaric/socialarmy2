@@ -2,55 +2,51 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useProfile } from "@/hooks/useProfile";
 import { usePosts } from "@/hooks/usePosts";
 import PostsCard from "@/components/PostsCard";
 import PostForm from "@/components/PostForm";
-import ReactPaginate from "react-paginate";
-import type { Post } from "@/types";
-
-function PaginatedItems({ items, itemsPerPage }: { items: Post[]; itemsPerPage: number }) {
-  const [itemOffset, setItemOffset] = useState(0);
-  const currentItems = items.slice(itemOffset, itemOffset + itemsPerPage);
-  const pageCount = Math.ceil(items.length / itemsPerPage);
-
-  return (
-    <>
-      <div className="scale-up-center">
-        {currentItems.map((post) => <PostsCard key={post.id} {...post} />)}
-      </div>
-      <ReactPaginate
-        breakLabel="..."
-        nextLabel=">"
-        previousLabel="<"
-        onPageChange={(ev) => setItemOffset((ev.selected * itemsPerPage) % items.length)}
-        pageRangeDisplayed={5}
-        pageCount={pageCount}
-        renderOnZeroPageCount={null}
-        activeClassName="active"
-        className="flex bg-gray-300 gap-4 justify-center rounded-md mb-4 py-4"
-        pageClassName="bg-purple-800 text-white w-6 text-center rounded-md hover:bg-purple-500"
-        previousClassName="box-border hover:border-b hover:border-purple-800"
-        nextClassName="box-border hover:border-b hover:border-purple-800"
-      />
-    </>
-  );
-}
 
 export default function Home() {
   const { user } = useAuthStore();
   const { data: profile } = useProfile(user);
-  const { data: posts = [], isLoading } = usePosts();
+  const { data: posts = [], isLoading, isError, error } = usePosts();
 
   return (
     <>
       <PostForm profile={profile ?? null} />
-      {isLoading ? (
-        <p className="text-center text-gray-400 py-8">Cargando posts...</p>
+
+      {isError ? (
+        <div className="glass-card p-4 border border-red-500/30 rounded-xl text-sm text-red-400">
+          <p className="font-medium mb-1">Error cargando posts</p>
+          <p className="text-xs font-mono opacity-70">
+            {error instanceof Error ? error.message : JSON.stringify(error)}
+          </p>
+        </div>
+      ) : isLoading ? (
+        <div className="flex flex-col gap-4">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="glass-card animate-pulse"
+              style={{ height: 160, opacity: 0.4 - i * 0.08 }}
+            />
+          ))}
+        </div>
+      ) : posts.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 gap-3">
+          <span className="text-5xl">💜</span>
+          <p className="text-[color:var(--text-secondary)] text-sm">
+            Aún no hay posts. ¡Sé el primero!
+          </p>
+        </div>
       ) : (
-        <PaginatedItems items={posts} itemsPerPage={5} />
+        <div className="flex flex-col gap-4">
+          {posts.map((post) => (
+            <PostsCard key={post.id} {...post} />
+          ))}
+        </div>
       )}
     </>
   );

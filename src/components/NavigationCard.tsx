@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useAuthStore } from "@/store/useAuthStore";
 import { supabase } from "@/lib/supabase/browser";
@@ -50,10 +50,13 @@ const NAV_ITEMS = [
 
 function NavigationCard() {
   const pathname = usePathname();
-  const { session } = useAuthStore();
+  const router = useRouter();
+  const { session, setSession } = useAuthStore();
 
   async function signout() {
     await supabase.auth.signOut();
+    setSession(null);
+    router.push("/auth/login");
   }
 
   function isActive(item: typeof NAV_ITEMS[number]) {
