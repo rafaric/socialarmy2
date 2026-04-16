@@ -5,7 +5,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import Avatar from "@/components/Avatar";
 import ArmySinceBadge from "@/components/ArmySinceBadge";
+import BtsMemberSelector from "@/components/BtsMemberSelector";
 import PostsCard from "@/components/PostsCard";
+import { BTS_DISCOGRAPHY, getAlbumByKey } from "@/lib/bts-discography";
 import { supabase } from "@/lib/supabase/browser";
 import { useAuthStore } from "@/store/useAuthStore";
 import Link from "next/link";
@@ -45,6 +47,11 @@ export default function ProfileView({
   const [about, setAbout] = useState("");
   const [coverUrl, setCoverUrl] = useState("");
   const [profileUrl, setProfileUrl] = useState("");
+  const [bias, setBias] = useState<string | null>(profile.bias ?? null);
+  const [biasWrecker, setBiasWrecker] = useState<string | null>(profile.bias_wrecker ?? null);
+  const [btsHusband, setBtsHusband] = useState<string | null>(profile.bts_husband ?? null);
+  const [favAlbum, setFavAlbum] = useState<string>(profile.fav_album ?? "");
+  const [favSong, setFavSong] = useState<string>(profile.fav_song ?? "");
 
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
@@ -130,7 +137,14 @@ export default function ProfileView({
   }
 
   async function handleSaveAbout() {
-    await supabase.from("profiles").update({ about }).eq("id", profile.id);
+    await supabase.from("profiles").update({
+      about,
+      bias,
+      bias_wrecker: biasWrecker,
+      bts_husband: btsHusband,
+      fav_album: favAlbum || null,
+      fav_song: favSong || null,
+    }).eq("id", profile.id);
     queryClient.invalidateQueries({ queryKey: ["profile", profile.id] });
     setEditing(false);
   }
@@ -252,7 +266,7 @@ export default function ProfileView({
 
         {/* About */}
         {activeTab === "about" && (
-          <div>
+          <div className="flex flex-col gap-6">
             <div className="flex items-start gap-3">
               <div className="flex-1">
                 <h2 className="text-sm font-semibold text-[color:var(--text-secondary)] uppercase tracking-wider mb-3">Sobre mí</h2>
@@ -307,6 +321,115 @@ export default function ProfileView({
                   )}
                 </div>
               )}
+            </div>
+            {/* BTS fields */}
+            <div className="flex flex-col gap-5">
+              <h2 className="text-sm font-semibold text-[color:var(--text-secondary)] uppercase tracking-wider">BTS</h2>
+
+              {/* Bias */}
+              {editing ? (
+                <BtsMemberSelector value={bias} onChange={setBias} label="Bias" />
+              ) : bias ? (
+                <BtsMemberSelector value={bias} onChange={() => {}} label="Bias" readOnly />
+              ) : isOwn ? (
+                <p className="text-[color:var(--text-muted)] text-sm italic">Sin bias definido</p>
+              ) : null}
+
+              {/* Bias wrecker */}
+              {editing ? (
+                <BtsMemberSelector value={biasWrecker} onChange={setBiasWrecker} label="Bias Wrecker" />
+              ) : biasWrecker ? (
+                <BtsMemberSelector value={biasWrecker} onChange={() => {}} label="Bias Wrecker" readOnly />
+              ) : null}
+
+              {/* Marido BTS */}
+              {editing ? (
+                <BtsMemberSelector value={btsHusband} onChange={setBtsHusband} label="Marido BTS 💍" />
+              ) : btsHusband ? (
+                <BtsMemberSelector value={btsHusband} onChange={() => {}} label="Marido BTS 💍" readOnly />
+              ) : null}
+
+              {/* Álbum favorito */}
+              {editing ? (
+                <div>
+                  <p className="text-[10px] text-[color:var(--text-muted)] uppercase tracking-wider mb-2">Álbum favorito</p>
+                  <div className="flex items-center gap-2">
+                    {favAlbum && (
+                      <img
+                        src={getAlbumByKey(favAlbum)?.cover}
+                        alt=""
+                        className="w-10 h-10 rounded-lg object-cover shrink-0"
+                      />
+                    )}
+                    <select
+                      value={favAlbum}
+                      onChange={(e) => { setFavAlbum(e.target.value); setFavSong(""); }}
+                      className="army-input flex-1 px-3 py-2 text-sm rounded-lg appearance-none cursor-pointer"
+                    >
+                      <option value="">Elegir álbum...</option>
+                      {BTS_DISCOGRAPHY.map((album) => (
+                        <option key={album.key} value={album.key}>{album.title} ({album.year})</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              ) : favAlbum ? (
+                <div className="flex items-center gap-3">
+                  <img
+                    src={getAlbumByKey(favAlbum)?.cover}
+                    alt=""
+                    className="w-12 h-12 rounded-lg object-cover shrink-0"
+                    style={{ boxShadow: "0 4px 12px rgba(0,0,0,0.4)" }}
+                  />
+                  <div>
+                    <p className="text-[10px] text-[color:var(--text-muted)] uppercase tracking-wider">Álbum favorito</p>
+                    <p className="text-sm font-semibold text-[color:var(--text-primary)]">{getAlbumByKey(favAlbum)?.title}</p>
+                    <p className="text-xs text-[color:var(--text-muted)]">{getAlbumByKey(favAlbum)?.year}</p>
+                  </div>
+                </div>
+              ) : null}
+
+              {/* Canción favorita */}
+              {editing ? (
+                <div>
+                  <p className="text-[10px] text-[color:var(--text-muted)] uppercase tracking-wider mb-2">Canción favorita</p>
+                  <div className="flex items-center gap-2">
+                    {favAlbum && (
+                      <img
+                        src={getAlbumByKey(favAlbum)?.cover}
+                        alt=""
+                        className="w-10 h-10 rounded-lg object-cover shrink-0 opacity-60"
+                      />
+                    )}
+                    <select
+                      value={favSong}
+                      onChange={(e) => setFavSong(e.target.value)}
+                      disabled={!favAlbum}
+                      className="army-input flex-1 px-3 py-2 text-sm rounded-lg appearance-none cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      <option value="">{favAlbum ? "Elegir canción..." : "Primero elegí un álbum"}</option>
+                      {getAlbumByKey(favAlbum)?.tracks.map((track) => (
+                        <option key={track} value={track}>{track}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              ) : favSong ? (
+                <div className="flex items-center gap-3">
+                  {favAlbum && (
+                    <img
+                      src={getAlbumByKey(favAlbum)?.cover}
+                      alt=""
+                      className="w-10 h-10 rounded-lg object-cover shrink-0 opacity-80"
+                    />
+                  )}
+                  <div>
+                    <p className="text-[10px] text-[color:var(--text-muted)] uppercase tracking-wider">Canción favorita</p>
+                    <p className="text-sm font-semibold text-[color:var(--text-primary)]">{profile.fav_song}</p>
+                    {favAlbum && <p className="text-xs text-[color:var(--text-muted)]">{getAlbumByKey(favAlbum)?.title}</p>}
+                  </div>
+                </div>
+              ) : null}
             </div>
           </div>
         )}

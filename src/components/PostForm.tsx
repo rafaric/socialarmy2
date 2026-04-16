@@ -200,19 +200,28 @@ const PostForm = ({ profile }: PostFormProps) => {
                         )}
                       </div>
 
-                      {/* Album select */}
-                      <select
-                        value={selectedAlbum}
-                        onChange={(e) => { setSelectedAlbum(e.target.value); setSelectedTrack(""); }}
-                        className="army-input w-full px-3 py-2 text-sm rounded-lg appearance-none cursor-pointer"
-                      >
-                        <option value="">Álbum...</option>
-                        {BTS_DISCOGRAPHY.map((album) => (
-                          <option key={album.key} value={album.key}>
-                            {album.title} ({album.year})
-                          </option>
-                        ))}
-                      </select>
+                      {/* Album select con cover preview */}
+                      <div className="flex items-center gap-2">
+                        {selectedAlbum && (
+                          <img
+                            src={BTS_DISCOGRAPHY.find(a => a.key === selectedAlbum)?.cover}
+                            alt=""
+                            className="w-10 h-10 rounded-lg object-cover shrink-0"
+                          />
+                        )}
+                        <select
+                          value={selectedAlbum}
+                          onChange={(e) => { setSelectedAlbum(e.target.value); setSelectedTrack(""); }}
+                          className="army-input flex-1 px-3 py-2 text-sm rounded-lg appearance-none cursor-pointer"
+                        >
+                          <option value="">Álbum...</option>
+                          {BTS_DISCOGRAPHY.map((album) => (
+                            <option key={album.key} value={album.key}>
+                              {album.title} ({album.year})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
 
                       {/* Track select */}
                       <select

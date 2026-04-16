@@ -18,6 +18,7 @@ import {
 } from "@/hooks/usePostActions";
 import { toast } from "sonner";
 import { getEraByKey } from "@/lib/bts-eras";
+import { BTS_DISCOGRAPHY } from "@/lib/bts-discography";
 import { REACTIONS } from "@/types";
 import type { Post, ReactionType } from "@/types";
 
@@ -168,12 +169,28 @@ const PostsCard = ({
             className="flex items-center gap-3 px-4 py-3 rounded-xl mb-3"
             style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
           >
-            {/* Animated bars */}
+            {/* Album cover o barras animadas */}
+            {(() => {
+              const albumTitle = now_playing.split(" — ")[1];
+              const album = BTS_DISCOGRAPHY.find(a => a.title === albumTitle);
+              return album ? (
+                <img src={album.cover} alt={album.title} className="w-10 h-10 rounded-lg object-cover shrink-0" />
+              ) : (
+                <div className="flex items-end gap-[3px] h-5 shrink-0">
+                  {[1, 2, 3, 4].map((i) => (
+                    <motion.div key={i} className="w-[3px] rounded-full"
+                      style={{ background: "var(--accent)" }}
+                      animate={{ height: ["40%", "100%", "60%", "90%", "40%"] }}
+                      transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.15, ease: "easeInOut" }}
+                    />
+                  ))}
+                </div>
+              );
+            })()}
+            {/* Barras animadas siempre visibles */}
             <div className="flex items-end gap-[3px] h-5 shrink-0">
               {[1, 2, 3, 4].map((i) => (
-                <motion.div
-                  key={i}
-                  className="w-[3px] rounded-full"
+                <motion.div key={i} className="w-[3px] rounded-full"
                   style={{ background: "var(--accent)" }}
                   animate={{ height: ["40%", "100%", "60%", "90%", "40%"] }}
                   transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.15, ease: "easeInOut" }}

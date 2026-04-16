@@ -5,6 +5,11 @@ export interface Profile {
   cover?: string;
   about?: string;
   army_since?: string | null;
+  bias?: string | null;
+  bias_wrecker?: string | null;
+  bts_husband?: string | null;
+  fav_song?: string | null;
+  fav_album?: string | null;
 }
 
 export interface Photo {
