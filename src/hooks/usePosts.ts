@@ -13,6 +13,7 @@ interface PostWithProfile {
   photos: Photo[] | null;
   tagged: TaggedFriend[] | null;
   parent: string | null;
+  era: string | null;
   profiles: { id: string; name: string; avatar: string } | { id: string; name: string; avatar: string }[] | null;
 }
 
@@ -34,6 +35,7 @@ function mapPostToType(post: PostWithProfile): Post {
     photos: post.photos,
     tagged: post.tagged,
     parent: post.parent,
+    era: post.era,
     profiles: authorProfile,
   };
 }
@@ -44,7 +46,7 @@ export function usePosts() {
     queryFn: async (): Promise<Post[]> => {
       const { data, error } = await supabase
         .from("posts")
-        .select("id, content, created_at, author, photos, tagged, parent, profiles(id, name, avatar)")
+        .select("id, content, created_at, author, photos, tagged, parent, era, profiles(id, name, avatar)")
         .is("parent", null)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -59,7 +61,7 @@ export function useUserPosts(userId: string | null) {
     queryFn: async (): Promise<Post[]> => {
       const { data, error } = await supabase
         .from("posts")
-        .select("id, content, created_at, author, photos, tagged, parent, profiles(id, name, avatar)")
+        .select("id, content, created_at, author, photos, tagged, parent, era, profiles(id, name, avatar)")
         .is("parent", null)
         .eq("author", userId!);
       if (error) throw error;
@@ -75,18 +77,19 @@ interface CreatePostInput {
   uploads: Photo[];
   selectedFriends: TaggedFriend[];
   friends: Profile[];
+  era?: string | null;
 }
 
 export function useCreatePost() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ userId, content, uploads, selectedFriends, friends }: CreatePostInput) => {
+    mutationFn: async ({ userId, content, uploads, selectedFriends, friends, era }: CreatePostInput) => {
       if (!content.trim()) throw new Error("El contenido no puede estar vacío");
 
       const { data, error } = await supabase
         .from("posts")
-        .insert({ author: userId, content, photos: uploads, tagged: selectedFriends })
+        .insert({ author: userId, content, photos: uploads, tagged: selectedFriends, era: era ?? null })
         .select()
         .single();
 

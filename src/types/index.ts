@@ -4,6 +4,7 @@ export interface Profile {
   avatar: string;
   cover?: string;
   about?: string;
+  army_since?: string | null;
 }
 
 export interface Photo {
@@ -26,6 +27,7 @@ export interface Post {
   tagged: TaggedFriend[] | null;
   profiles: Profile;
   parent?: string | null;
+  era?: string | null;
 }
 
 export interface Like {

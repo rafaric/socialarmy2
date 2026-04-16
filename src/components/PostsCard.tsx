@@ -15,9 +15,10 @@ import {
   useIsSaved,
   useToggleSave,
 } from "@/hooks/usePostActions";
+import { getEraByKey } from "@/lib/bts-eras";
 import type { Post } from "@/types";
 
-type PostsCardProps = Omit<Post, "author">;
+type PostsCardProps = Omit<Post, "author"> & { era?: string | null };
 
 const PostsCard = ({
   id,
@@ -25,8 +26,10 @@ const PostsCard = ({
   created_at,
   photos,
   tagged,
+  era,
   profiles: authorProfile,
 }: PostsCardProps) => {
+  const eraData = era ? getEraByKey(era) : null;
   const { session, user } = useAuthStore();
   const [commentText, setCommentText] = useState("");
 
@@ -78,14 +81,28 @@ const PostsCard = ({
               {authorProfile?.name}{" "}
               <span className="text-[color:var(--text-secondary)] font-normal">compartió un post</span>
             </p>
-            <p className="text-[color:var(--text-muted)] text-xs mt-0.5">
-              Hace {formatDistanceToNow(fecha, { locale: es })}
+            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+              <span className="text-[color:var(--text-muted)] text-xs">
+                Hace {formatDistanceToNow(fecha, { locale: es })}
+              </span>
               {tagged && tagged.length > 0 && (
-                <span className="ml-2 text-[color:var(--accent-gold)]">
-                  con {tagged[0]?.label}
+                <span className="text-[color:var(--accent-gold)] text-xs">
+                  · con {tagged[0]?.label}
                 </span>
               )}
-            </p>
+              {eraData && (
+                <span
+                  className="text-[10px] font-semibold px-2 py-0.5 rounded-full tracking-wide"
+                  style={{
+                    background: eraData.bg,
+                    color: eraData.color,
+                    border: `1px solid ${eraData.color}40`,
+                  }}
+                >
+                  ✨ {eraData.label}
+                </span>
+              )}
+            </div>
           </div>
 
           <DropdownMenu.Root>

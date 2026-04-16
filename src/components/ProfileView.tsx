@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import Avatar from "@/components/Avatar";
+import ArmySinceBadge from "@/components/ArmySinceBadge";
 import PostsCard from "@/components/PostsCard";
 import { supabase } from "@/lib/supabase/browser";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -183,6 +184,12 @@ export default function ProfileView({
           {profile.about && (
             <p className="text-sm text-[color:var(--text-secondary)] mt-0.5">{profile.about}</p>
           )}
+          <ArmySinceBadge
+            armySince={profile.army_since}
+            isOwn={isOwn}
+            profileId={profile.id}
+            onUpdate={() => queryClient.invalidateQueries({ queryKey: ["profile", profile.id] })}
+          />
         </div>
 
         {!isFriend && !isOwn && (
