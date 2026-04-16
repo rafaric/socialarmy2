@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Avatar from "./Avatar";
 import FriendSelector from "./FriendSearch";
 import Link from "next/link";
@@ -12,7 +13,7 @@ interface PostFormProps {
 }
 
 const PostForm = ({ profile }: PostFormProps) => {
-  const { user, session } = useAuthStore();
+  const { user } = useAuthStore();
   const { data: friends = [] } = useFriends(user);
   const createPost = useCreatePost();
   const uploadPhotos = useUploadPhotos();
@@ -41,94 +42,155 @@ const PostForm = ({ profile }: PostFormProps) => {
   }
 
   return (
-    <div className="flex flex-col bg-gray-100 border border-gray-300 rounded-lg p-4 mb-6">
-      <div className="flex items-center">
-        <Link href={`/profile/${profile?.id}`}>
-          <Avatar url={profile?.avatar ?? `https://api.multiavatar.com/${profile?.name}.svg`} />
+    <>
+      {/* Trigger */}
+      <div className="glass-card py-4 px-5 mb-5 flex items-center gap-3">
+        <Link href={`/profile/${profile?.id}`} className="shrink-0">
+          <Avatar url={profile?.avatar} size="sm" ring />
         </Link>
-        <div className="flex flex-col justify-between flex-1">
-          <p className="px-4 text-xl font-bold py-3">
-            Bienvenido/a {profile?.name?.split(" ", 1)}!!!
-          </p>
-          <input
-            className="w-full rounded-full px-4 py-2 mb-4 border border-gray-300 text-gray-700 leading-tight focus:outline-none cursor-pointer"
-            type="text"
-            placeholder="¿En qué estás pensando?"
-            onClick={() => setShowModal(true)}
-            readOnly
-          />
-        </div>
+        <button
+          type="button"
+          className="army-input flex-1 text-left px-4 py-2.5 text-sm text-[color:var(--text-muted)] rounded-full cursor-pointer"
+          onClick={() => setShowModal(true)}
+        >
+          ¿En qué estás pensando, {profile?.name?.split(" ", 1)}?
+        </button>
+        <button
+          type="button"
+          onClick={() => setShowModal(true)}
+          className="shrink-0 btn-accent text-sm py-2 px-4 hidden md:block"
+        >
+          Publicar
+        </button>
       </div>
 
-      {showModal && (
-        <div className="fixed top-0 left-0 w-full h-full bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-8 min-w-fit relative text-center max-w-full">
-            <p className="text-lg font-bold text-purple-700">Crear publicación</p>
-            <button type="button" className="absolute top-8 right-2 hover:bg-purple-200 py-1 px-3 rounded-full cursor-pointer transition-all duration-700" onClick={() => setShowModal(false)}>
-              X
-            </button>
-            <div className="flex flex-col items-center my-4 gap-4 border-t-2 border-purple-400 pt-2">
-              <div className="flex items-start py-4 gap-4">
-                <Avatar url={profile?.avatar} size="sm" />
-                <p>{profile?.name}</p>
-              </div>
-              <div className="flex-1">
-                <textarea
-                  rows={6} cols={50}
-                  className="w-full rounded-md px-2 py-2 border border-gray-300 text-gray-700 leading-tight focus:outline-none"
-                  placeholder="¿En qué estás pensando?"
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                />
-              </div>
-            </div>
-
-            {uploads.length > 0 && (
-              <div className="inline-flex items-center gap-2">
-                {uploads.map((upload) => (
-                  <div key={upload.id}>
-                    {upload.tipo === "image/jpeg" && <img src={upload.url} alt="up" className="w-28 h-24 rounded-md" />}
-                    {upload.tipo === "video/mp4" && <video className="w-28 h-24 rounded-md"><source src={upload.url} /></video>}
-                  </div>
-                ))}
-                {isUploading && <span className="loader" />}
-              </div>
-            )}
-
-            <div className="flex mt-4 justify-between">
-              <div className="flex items-center gap-2">
-                <label htmlFor="images" className="cursor-pointer">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                  </svg>
-                  <input id="images" type="file" accept=".jpg,.gif,.mp4,.webm" className="hidden" onChange={handleFileChange} multiple />
-                </label>
-                <button type="button" onClick={() => setAmigos(!amigos)}>
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
+      {/* Modal */}
+      <AnimatePresence>
+        {showModal && (
+          <motion.div
+            key="modal-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center px-4"
+            style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}
+            onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false); }}
+          >
+            <motion.div
+              key="modal-panel"
+              initial={{ opacity: 0, scale: 0.95, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 8 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="glass-card w-full max-w-lg p-6"
+            >
+              {/* Modal header */}
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="text-[color:var(--text-primary)] font-semibold">Crear publicación</h2>
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-[color:var(--text-muted)] hover:text-[color:var(--text-primary)] transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                    <path fillRule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
                   </svg>
                 </button>
-                {amigos && (
+              </div>
+
+              {/* Author */}
+              <div className="flex items-center gap-3 mb-4">
+                <Avatar url={profile?.avatar} size="sm" ring />
+                <span className="text-[color:var(--text-primary)] text-sm font-medium">{profile?.name}</span>
+              </div>
+
+              {/* Textarea */}
+              <textarea
+                rows={5}
+                className="army-input w-full px-4 py-3 text-sm resize-none rounded-xl"
+                placeholder="¿En qué estás pensando?"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+              />
+
+              {/* Media preview */}
+              {(uploads.length > 0 || isUploading) && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {uploads.map((upload) => (
+                    <div key={upload.id} className="rounded-lg overflow-hidden">
+                      {upload.tipo === "image/jpeg" && (
+                        <img src={upload.url} alt="preview" className="w-24 h-20 object-cover" />
+                      )}
+                      {upload.tipo === "video/mp4" && (
+                        <video className="w-24 h-20 object-cover rounded-lg">
+                          <source src={upload.url} />
+                        </video>
+                      )}
+                    </div>
+                  ))}
+                  {isUploading && (
+                    <div className="w-24 h-20 rounded-lg flex items-center justify-center bg-white/5">
+                      <span className="loader" style={{ width: 28, height: 28 }} />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Tagged friends */}
+              {amigos && (
+                <div className="mt-3">
                   <FriendSelector
                     onSelect={setSelectedFriends}
                     selectedFriends={selectedFriends}
                     setSelectedFriends={setSelectedFriends}
                   />
-                )}
+                </div>
+              )}
+
+              {/* Actions bar */}
+              <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/10">
+                <div className="flex items-center gap-2">
+                  <label
+                    htmlFor="images"
+                    className="w-9 h-9 flex items-center justify-center rounded-lg cursor-pointer text-[color:var(--text-secondary)] hover:text-[color:var(--accent)] hover:bg-white/5 transition-colors"
+                    title="Adjuntar imagen/video"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                      <path fillRule="evenodd" d="M1.5 6a2.25 2.25 0 0 1 2.25-2.25h16.5A2.25 2.25 0 0 1 22.5 6v12a2.25 2.25 0 0 1-2.25 2.25H3.75A2.25 2.25 0 0 1 1.5 18V6ZM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0 0 21 18v-1.94l-2.69-2.689a1.5 1.5 0 0 0-2.12 0l-.88.879.97.97a.75.75 0 1 1-1.06 1.06l-5.16-5.159a1.5 1.5 0 0 0-2.12 0L3 16.061Zm10.125-7.81a1.125 1.125 0 1 1 2.25 0 1.125 1.125 0 0 1-2.25 0Z" clipRule="evenodd" />
+                    </svg>
+                    <input id="images" type="file" accept=".jpg,.gif,.mp4,.webm" className="hidden" onChange={handleFileChange} multiple />
+                  </label>
+
+                  <button
+                    type="button"
+                    title="Etiquetár amigos"
+                    onClick={() => setAmigos(!amigos)}
+                    className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors ${
+                      amigos
+                        ? "text-[color:var(--accent)] bg-[color:var(--accent)]/10"
+                        : "text-[color:var(--text-secondary)] hover:text-[color:var(--accent)] hover:bg-white/5"
+                    }`}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                      <path d="M4.5 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM14.25 8.625a3.375 3.375 0 1 1 6.75 0 3.375 3.375 0 0 1-6.75 0ZM1.5 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM17.25 19.128l-.001.144a2.25 2.25 0 0 1-.233.96 10.088 10.088 0 0 0 5.06-1.01.75.75 0 0 0 .42-.643 4.875 4.875 0 0 0-6.957-4.611 8.586 8.586 0 0 1 1.71 5.157v.003Z" />
+                    </svg>
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  className="btn-accent text-sm py-2 px-5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
+                  onClick={handlePublish}
+                  disabled={createPost.isPending || !content.trim()}
+                >
+                  {createPost.isPending ? "Publicando..." : "Publicar"}
+                </button>
               </div>
-              <button
-                type="button"
-                className="bg-purple-600 text-white rounded-full px-4 py-2 disabled:opacity-50"
-                onClick={handlePublish}
-                disabled={createPost.isPending || !content.trim()}
-              >
-                {createPost.isPending ? "Publicando..." : "Publicar"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 
