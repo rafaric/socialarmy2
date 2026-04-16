@@ -4,7 +4,38 @@ import { useQuery } from "@tanstack/react-query";
 import PostsCard from "@/components/PostsCard";
 import { supabase } from "@/lib/supabase/browser";
 import { useAuthStore } from "@/store/useAuthStore";
-import type { Post } from "@/types";
+import type { Post, Profile, Photo, TaggedFriend } from "@/types";
+
+interface PostFromSupabase {
+  id: string;
+  content: string;
+  created_at: string;
+  author: string;
+  photos: Photo[] | null;
+  tagged: TaggedFriend[] | null;
+  parent: string | null;
+  profiles: Profile | Profile[] | null;
+}
+
+function mapPostToType(post: PostFromSupabase): Post {
+  let authorProfile: Profile;
+  if (Array.isArray(post.profiles)) {
+    authorProfile = post.profiles[0] ?? { id: post.author, name: "Usuario", avatar: "" };
+  } else {
+    authorProfile = post.profiles ?? { id: post.author, name: "Usuario", avatar: "" };
+  }
+
+  return {
+    id: post.id,
+    content: post.content,
+    created_at: post.created_at,
+    author: post.author,
+    photos: post.photos,
+    tagged: post.tagged,
+    parent: post.parent,
+    profiles: authorProfile,
+  };
+}
 
 function useSavedPosts(userId: string | null) {
   return useQuery({
@@ -20,11 +51,11 @@ function useSavedPosts(userId: string | null) {
       const ids = saved.map((s: { post_id: string }) => s.post_id);
       const { data, error } = await supabase
         .from("posts")
-        .select("*, profiles(*)")
+        .select("id, content, created_at, author, photos, tagged, parent, profiles(id, name, avatar)")
         .in("id", ids);
 
       if (error) throw error;
-      return (data ?? []) as unknown as Post[];
+      return (data ?? []).map(mapPostToType);
     },
     enabled: !!userId,
   });

@@ -3,17 +3,52 @@ import { supabase } from "@/lib/supabase/browser";
 import type { Post, Photo, TaggedFriend, Profile } from "@/types";
 import { v4 as uuidv4 } from "uuid";
 
+// Tipo que representa el resultado de la query de Supabase
+// profiles puede ser un array o un objeto dependiendo del query
+interface PostWithProfile {
+  id: string;
+  content: string;
+  created_at: string;
+  author: string;
+  photos: Photo[] | null;
+  tagged: TaggedFriend[] | null;
+  parent: string | null;
+  profiles: { id: string; name: string; avatar: string } | { id: string; name: string; avatar: string }[] | null;
+}
+
+// Mappea el resultado de Supabase al tipo Post
+function mapPostToType(post: PostWithProfile): Post {
+  // profiles puede venir como array (si hay múltiples) o como objeto único
+  let authorProfile: Profile;
+  if (Array.isArray(post.profiles)) {
+    authorProfile = post.profiles[0] ?? { id: post.author, name: "Usuario", avatar: "" };
+  } else {
+    authorProfile = post.profiles ?? { id: post.author, name: "Usuario", avatar: "" };
+  }
+
+  return {
+    id: post.id,
+    content: post.content,
+    created_at: post.created_at,
+    author: post.author,
+    photos: post.photos,
+    tagged: post.tagged,
+    parent: post.parent,
+    profiles: authorProfile,
+  };
+}
+
 export function usePosts() {
   return useQuery({
     queryKey: ["posts"],
     queryFn: async (): Promise<Post[]> => {
       const { data, error } = await supabase
         .from("posts")
-        .select("id, content, created_at, author, photos, tagged, profiles(id, name, avatar)")
+        .select("id, content, created_at, author, photos, tagged, parent, profiles(id, name, avatar)")
         .is("parent", null)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as unknown as Post[];
+      return (data ?? []).map(mapPostToType);
     },
   });
 }
@@ -24,11 +59,11 @@ export function useUserPosts(userId: string | null) {
     queryFn: async (): Promise<Post[]> => {
       const { data, error } = await supabase
         .from("posts")
-        .select("id, content, created_at, author, photos, profiles(id, name, avatar)")
+        .select("id, content, created_at, author, photos, tagged, parent, profiles(id, name, avatar)")
         .is("parent", null)
         .eq("author", userId!);
       if (error) throw error;
-      return (data ?? []) as unknown as Post[];
+      return (data ?? []).map(mapPostToType);
     },
     enabled: !!userId,
   });
