@@ -15,6 +15,8 @@ interface PostFromSupabase {
   photos: Photo[] | null;
   tagged: TaggedFriend[] | null;
   parent: string | null;
+  era: string | null;
+  now_playing: string | null;
   profiles: Profile | Profile[] | null;
 }
 
@@ -33,6 +35,8 @@ function mapPostToType(post: PostFromSupabase): Post {
     photos: post.photos,
     tagged: post.tagged,
     parent: post.parent,
+    era: post.era,
+    now_playing: post.now_playing,
     profiles: authorProfile,
   };
 }
@@ -51,7 +55,7 @@ function useSavedPosts(userId: string | null) {
       const ids = saved.map((s: { post_id: string }) => s.post_id);
       const { data, error } = await supabase
         .from("posts")
-        .select("id, content, created_at, author, photos, tagged, parent, profiles(id, name, avatar)")
+        .select("id, content, created_at, author, photos, tagged, parent, era, now_playing, profiles!posts_author_fkey(id, name, avatar)")
         .in("id", ids);
 
       if (error) throw error;
