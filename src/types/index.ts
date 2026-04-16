@@ -65,6 +65,7 @@ export interface Notification {
   user_receptor: string;
   post_id: string | null;
   created_at: string;
+  read: boolean;
   profiles?: Profile;
 }
 

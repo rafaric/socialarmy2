@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useUnreadCount } from "@/hooks/useNotifications";
 import { supabase } from "@/lib/supabase/browser";
 
 const NAV_ITEMS = [
@@ -51,7 +52,8 @@ const NAV_ITEMS = [
 function NavigationCard() {
   const pathname = usePathname();
   const router = useRouter();
-  const { session, setSession } = useAuthStore();
+  const { session, setSession, user } = useAuthStore();
+  const { data: unreadCount = 0 } = useUnreadCount(user);
 
   async function signout() {
     await supabase.auth.signOut();
@@ -104,7 +106,17 @@ function NavigationCard() {
                     : "text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] hover:bg-white/5"
                 }`}
               >
-                {item.icon}
+                <span className="relative">
+                  {item.icon}
+                  {item.label === "Notificaciones" && unreadCount > 0 && (
+                    <span
+                      className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-white"
+                      style={{ background: "var(--accent)" }}
+                    >
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
+                </span>
                 <span className="hidden md:block text-sm font-medium">{item.label}</span>
               </span>
             </Link>

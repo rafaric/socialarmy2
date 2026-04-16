@@ -1,22 +1,37 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import Avatar from "@/components/Avatar";
 import Link from "next/link";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useNotifications } from "@/hooks/useNotifications";
+import {
+  useNotifications,
+  useMarkAllRead,
+  useDeleteNotification,
+} from "@/hooks/useNotifications";
 
 const NOTIFICATION_LABELS: Record<string, { text: string; icon: string }> = {
-  like:        { text: "le dio 💜 a tu post",         icon: "💜" },
-  comentario:  { text: "comentó tu post",              icon: "💬" },
-  post:        { text: "compartió una publicación",    icon: "📢" },
+  like:       { text: "le dio 💜 a tu post",       icon: "💜" },
+  comentario: { text: "comentó tu post",            icon: "💬" },
+  post:       { text: "compartió una publicación",  icon: "📢" },
 };
 
 export default function NotificationsPage() {
   const { user } = useAuthStore();
   const { data: notifications = [], isLoading } = useNotifications(user);
+  const markAllRead = useMarkAllRead(user);
+  const deleteNotification = useDeleteNotification(user);
+
+  // Marcar todas como leídas al entrar
+  useEffect(() => {
+    if (!user || notifications.length === 0) return;
+    const hasUnread = notifications.some((n) => !n.read);
+    if (hasUnread) markAllRead.mutate();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, notifications.length]);
 
   return (
     <div>
@@ -76,43 +91,71 @@ export default function NotificationsPage() {
       {/* Notification list */}
       {notifications.length > 0 && (
         <div className="glass-card overflow-hidden divide-y divide-white/5">
-          {notifications.map((noti, i) => {
-            const meta = NOTIFICATION_LABELS[noti.notification_type] ?? { text: "interactuó con vos", icon: "✨" };
-            return (
-              <motion.div
-                key={noti.id}
-                initial={{ opacity: 0, x: -8 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.05, duration: 0.25 }}
-                className="flex items-center gap-4 px-6 py-4 hover:bg-white/5 transition-colors"
-              >
-                {/* Type icon badge */}
-                <div className="relative shrink-0">
-                  <Link href={`/profile/${noti.profiles?.id}`}>
-                    <Avatar url={noti.profiles?.avatar ?? null} size="md" />
-                  </Link>
-                  <span className="absolute -bottom-0.5 -right-0.5 text-sm leading-none">
-                    {meta.icon}
-                  </span>
-                </div>
+          <AnimatePresence initial={false}>
+            {notifications.map((noti, i) => {
+              const meta = NOTIFICATION_LABELS[noti.notification_type] ?? { text: "interactuó con vos", icon: "✨" };
+              return (
+                <motion.div
+                  key={noti.id}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 8, height: 0 }}
+                  transition={{ delay: i * 0.03, duration: 0.2 }}
+                  className="relative flex items-center gap-4 px-6 py-4 hover:bg-white/5 transition-colors group"
+                  style={!noti.read ? {
+                    background: "rgba(var(--accent-rgb, 124, 77, 206), 0.06)",
+                    borderLeft: "2px solid var(--accent)",
+                  } : {}}
+                >
+                  {/* Unread dot */}
+                  {!noti.read && (
+                    <span
+                      className="absolute left-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full"
+                      style={{ background: "var(--accent)" }}
+                    />
+                  )}
 
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-[color:var(--text-secondary)]">
-                    <Link
-                      href={`/profile/${noti.profiles?.id}`}
-                      className="font-semibold text-[color:var(--text-primary)] hover:text-[color:var(--accent)] transition-colors"
-                    >
-                      {noti.profiles?.name}
-                    </Link>{" "}
-                    {meta.text}
-                  </p>
-                  <p className="text-xs text-[color:var(--text-muted)] mt-0.5">
-                    Hace {formatDistanceToNow(new Date(noti.created_at), { locale: es })}
-                  </p>
-                </div>
-              </motion.div>
-            );
-          })}
+                  {/* Avatar + icon badge */}
+                  <div className="relative shrink-0">
+                    <Link href={`/profile/${noti.profiles?.id}`}>
+                      <Avatar url={noti.profiles?.avatar ?? null} size="md" />
+                    </Link>
+                    <span className="absolute -bottom-0.5 -right-0.5 text-sm leading-none">
+                      {meta.icon}
+                    </span>
+                  </div>
+
+                  {/* Text */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-[color:var(--text-secondary)]">
+                      <Link
+                        href={`/profile/${noti.profiles?.id}`}
+                        className="font-semibold text-[color:var(--text-primary)] hover:text-[color:var(--accent)] transition-colors"
+                      >
+                        {noti.profiles?.name}
+                      </Link>{" "}
+                      {meta.text}
+                    </p>
+                    <p className="text-xs text-[color:var(--text-muted)] mt-0.5">
+                      Hace {formatDistanceToNow(new Date(noti.created_at), { locale: es })}
+                    </p>
+                  </div>
+
+                  {/* Delete button */}
+                  <button
+                    type="button"
+                    onClick={() => deleteNotification.mutate(noti.id)}
+                    className="opacity-0 group-hover:opacity-100 w-7 h-7 flex items-center justify-center rounded-lg text-[color:var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all shrink-0"
+                    aria-label="Eliminar notificación"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
+                      <path fillRule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
         </div>
       )}
     </div>
