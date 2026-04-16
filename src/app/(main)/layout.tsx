@@ -1,4 +1,5 @@
 import NavigationCard from "@/components/NavigationCard";
+import EraSelector from "@/components/EraSelector";
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -11,8 +12,9 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
       <div className="flex max-w-6xl mx-auto px-4 pt-16 md:pt-10 gap-6">
         {/* Sidebar */}
-        <aside className="hidden md:block w-56 shrink-0 sticky top-8 h-fit">
+        <aside className="hidden md:flex md:flex-col w-56 shrink-0 sticky top-8 h-fit gap-3">
           <NavigationCard />
+          <EraSelector />
         </aside>
 
         {/* Mobile nav (bottom) */}

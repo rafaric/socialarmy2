@@ -70,34 +70,34 @@ const FriendSelector = ({
   }
 
   function handleRemove(friend: TaggedFriend) {
-    const filtered = selectedFriends.filter((f) => f.value !== friend.value);
-    setSelectedFriends(filtered);
-    onSelect(filtered);
+    const next = selectedFriends.filter((f) => f.value !== friend.value);
+    setSelectedFriends(next);
+    onSelect(next);
   }
 
   return (
-    <div ref={containerRef} className="relative w-52">
+    <div ref={containerRef} className="relative w-full">
       <Command shouldFilter={false}>
-        <div className="flex items-center border border-gray-300 rounded-md px-2 py-1 bg-white focus-within:ring-2 focus-within:ring-purple-400">
+        <div className="army-input flex items-center px-3 py-2 rounded-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-[color:var(--text-muted)] shrink-0 mr-2">
+            <path fillRule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clipRule="evenodd" />
+          </svg>
           <Command.Input
-            className="flex-1 text-sm outline-none bg-transparent placeholder:text-gray-400"
+            className="flex-1 text-sm outline-none bg-transparent text-[color:var(--text-primary)] placeholder:text-[color:var(--text-muted)]"
             placeholder="Buscar amigos..."
             value={inputValue}
-            onValueChange={(val) => {
-              setInputValue(val);
-              setOpen(true);
-            }}
+            onValueChange={(val) => { setInputValue(val); setOpen(true); }}
             onFocus={() => setOpen(true)}
           />
         </div>
 
         {open && filtered.length > 0 && (
-          <Command.List className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-md max-h-48 overflow-y-auto">
+          <Command.List className="absolute z-50 mt-1 w-full glass-card py-1 max-h-48 overflow-y-auto">
             {filtered.map((friend) => (
               <Command.Item
                 key={friend.value}
                 value={friend.label}
-                className="px-3 py-2 text-sm cursor-pointer hover:bg-purple-50 hover:text-purple-700"
+                className="px-3 py-2.5 text-sm cursor-pointer text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] hover:bg-white/5 outline-none transition-colors"
                 onSelect={() => handleSelect(friend)}
               >
                 {friend.label}
@@ -107,19 +107,23 @@ const FriendSelector = ({
         )}
       </Command>
 
-      {/* Selected tags */}
       {selectedFriends.length > 0 && (
-        <div className="flex flex-wrap gap-1 mt-2">
+        <div className="flex flex-wrap gap-1.5 mt-2">
           {selectedFriends.map((friend) => (
             <span
               key={friend.value}
-              className="inline-flex items-center gap-1 bg-purple-100 text-purple-700 text-xs font-medium px-2 py-0.5 rounded-full"
+              className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full"
+              style={{
+                background: "var(--accent-glow)",
+                color: "var(--accent-hover)",
+                border: "1px solid var(--glass-border)",
+              }}
             >
               {friend.label}
               <button
                 type="button"
                 onClick={() => handleRemove(friend)}
-                className="hover:text-purple-900 leading-none"
+                className="hover:opacity-70 leading-none ml-0.5"
                 aria-label={`Quitar ${friend.label}`}
               >
                 ×
