@@ -269,30 +269,7 @@ const PostsCard = ({
 
         {/* Media */}
         {photos && photos.length > 0 && (
-          <div className="flex gap-3 justify-center flex-wrap rounded-lg overflow-hidden -mx-5 md:-mx-8">
-            {photos.map((photo) => (
-              <div key={photo.id} className="w-full">
-                {(photo.tipo === "image/jpeg" || photo.tipo?.startsWith("image/")) && (
-                  <button
-                    type="button"
-                    className="w-full focus:outline-none"
-                    onClick={() => setLightboxIndex(imagePhotos.findIndex((p) => p.id === photo.id))}
-                  >
-                    <img
-                      src={photo.url}
-                      className="w-full max-h-[480px] object-cover cursor-zoom-in"
-                      alt=""
-                    />
-                  </button>
-                )}
-                {photo.tipo === "video/mp4" && (
-                  <video autoPlay muted controls className="w-full max-h-[480px] object-cover">
-                    <source src={photo.url} />
-                  </video>
-                )}
-              </div>
-            ))}
-          </div>
+          <PhotoGrid photos={photos} imagePhotos={imagePhotos} onImageClick={setLightboxIndex} />
         )}
 
         {/* Lightbox */}
@@ -446,3 +423,132 @@ const PostsCard = ({
 };
 
 export default PostsCard;
+
+// ─── Photo Grid ───────────────────────────────────────────────────────────────
+
+interface PhotoGridProps {
+  photos: import("@/types").Photo[];
+  imagePhotos: import("@/types").Photo[];
+  onImageClick: (index: number) => void;
+}
+
+function PhotoGrid({ photos, imagePhotos, onImageClick }: PhotoGridProps) {
+  const MAX_VISIBLE = 4;
+  const visible = photos.slice(0, MAX_VISIBLE);
+  const overflow = photos.length - MAX_VISIBLE;
+
+  function lightboxIdx(photo: import("@/types").Photo) {
+    return imagePhotos.findIndex((p) => p.id === photo.id);
+  }
+
+  function isImage(photo: import("@/types").Photo) {
+    return photo.tipo?.startsWith("image/");
+  }
+
+  const containerCls = "-mx-5 md:-mx-8 overflow-hidden";
+
+  // 1 photo — full width
+  if (photos.length === 1) {
+    const photo = photos[0];
+    return (
+      <div className={containerCls}>
+        {isImage(photo) ? (
+          <button type="button" className="w-full focus:outline-none" onClick={() => onImageClick(lightboxIdx(photo))}>
+            <img src={photo.url} alt="" className="w-full max-h-[480px] object-cover cursor-zoom-in" />
+          </button>
+        ) : (
+          <video autoPlay muted controls className="w-full max-h-[480px] object-cover">
+            <source src={photo.url} />
+          </video>
+        )}
+      </div>
+    );
+  }
+
+  // 2 photos — side by side
+  if (photos.length === 2) {
+    return (
+      <div className={`${containerCls} grid grid-cols-2 gap-0.5`}>
+        {photos.map((photo) => (
+          <div key={photo.id} className="aspect-square">
+            {isImage(photo) ? (
+              <button type="button" className="w-full h-full focus:outline-none" onClick={() => onImageClick(lightboxIdx(photo))}>
+                <img src={photo.url} alt="" className="w-full h-full object-cover cursor-zoom-in" />
+              </button>
+            ) : (
+              <video autoPlay muted controls className="w-full h-full object-cover">
+                <source src={photo.url} />
+              </video>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // 3 photos — 1 large left + 2 stacked right
+  if (photos.length === 3) {
+    return (
+      <div className={`${containerCls} grid grid-cols-2 gap-0.5`} style={{ gridTemplateRows: "1fr 1fr" }}>
+        {/* Large left */}
+        <div className="row-span-2">
+          {isImage(photos[0]) ? (
+            <button type="button" className="w-full h-full focus:outline-none" onClick={() => onImageClick(lightboxIdx(photos[0]))}>
+              <img src={photos[0].url} alt="" className="w-full h-full object-cover cursor-zoom-in" style={{ minHeight: 200 }} />
+            </button>
+          ) : (
+            <video autoPlay muted controls className="w-full h-full object-cover" style={{ minHeight: 200 }}>
+              <source src={photos[0].url} />
+            </video>
+          )}
+        </div>
+        {/* 2 stacked right */}
+        {[photos[1], photos[2]].map((photo) => (
+          <div key={photo.id} className="aspect-square">
+            {isImage(photo) ? (
+              <button type="button" className="w-full h-full focus:outline-none" onClick={() => onImageClick(lightboxIdx(photo))}>
+                <img src={photo.url} alt="" className="w-full h-full object-cover cursor-zoom-in" />
+              </button>
+            ) : (
+              <video autoPlay muted controls className="w-full h-full object-cover">
+                <source src={photo.url} />
+              </video>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // 4+ photos — 2x2 grid, last cell has +N overlay
+  return (
+    <div className={`${containerCls} grid grid-cols-2 gap-0.5`}>
+      {visible.map((photo, i) => {
+        const isLast = i === MAX_VISIBLE - 1 && overflow > 0;
+        return (
+          <div key={photo.id} className="aspect-square relative">
+            {isImage(photo) ? (
+              <button type="button" className="w-full h-full focus:outline-none" onClick={() => onImageClick(lightboxIdx(photo))}>
+                <img src={photo.url} alt="" className="w-full h-full object-cover cursor-zoom-in" />
+              </button>
+            ) : (
+              <video autoPlay muted controls className="w-full h-full object-cover">
+                <source src={photo.url} />
+              </video>
+            )}
+            {isLast && (
+              <button
+                type="button"
+                className="absolute inset-0 flex items-center justify-center text-white text-2xl font-bold focus:outline-none"
+                style={{ background: "rgba(0,0,0,0.55)" }}
+                onClick={() => onImageClick(lightboxIdx(photo))}
+              >
+                +{overflow + 1}
+              </button>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}

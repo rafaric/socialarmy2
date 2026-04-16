@@ -9,7 +9,7 @@ import { useCreatePost, useUploadPhotos } from "@/hooks/usePosts";
 import { BTS_ERAS } from "@/lib/bts-eras";
 import { BTS_DISCOGRAPHY } from "@/lib/bts-discography";
 import { BTS_MEMBERS, getMemberByKey } from "@/lib/bts-members";
-import type { Profile, Photo, TaggedFriend } from "@/types";
+import type { Profile, TaggedFriend } from "@/types";
 
 interface PostFormProps {
   profile: Profile | null;
@@ -25,7 +25,7 @@ const PostForm = ({ profile }: PostFormProps) => {
 
   const [showModal, setShowModal] = useState(false);
   const [content, setContent] = useState("");
-  const [uploads, setUploads] = useState<Photo[]>([]);
+  const [uploads, setUploads] = useState<{ file: File; preview: string }[]>([]);
   const [selectedFriends, setSelectedFriends] = useState<TaggedFriend[]>([]);
   const [selectedEra, setSelectedEra] = useState<string | null>(null);
   const [selectedAlbum, setSelectedAlbum] = useState("");
@@ -38,16 +38,25 @@ const PostForm = ({ profile }: PostFormProps) => {
     setActiveSection((prev) => (prev === section ? null : section));
   }
 
-  const isUploading = uploadPhotos.isPending;
+  const isPublishing = createPost.isPending || uploadPhotos.isPending;
 
-  async function handlePublish() {
-    if (!user) return;
-    await createPost.mutateAsync({
-      userId: user, content, uploads, selectedFriends, friends,
-      era: selectedEra,
-      nowPlaying: nowPlaying.trim() || null,
-      btsMembers: selectedMembers,
+  function handleFileChange(ev: React.ChangeEvent<HTMLInputElement>) {
+    if (!ev.target.files?.length) return;
+    const files = Array.from(ev.target.files);
+    setUploads((prev) => [...prev, ...files.map((f) => ({ file: f, preview: URL.createObjectURL(f) }))]);
+    // Reset input so same file can be re-selected
+    ev.target.value = "";
+  }
+
+  function removeUpload(index: number) {
+    setUploads((prev) => {
+      URL.revokeObjectURL(prev[index].preview);
+      return prev.filter((_, i) => i !== index);
     });
+  }
+
+  function resetModal() {
+    uploads.forEach((u) => URL.revokeObjectURL(u.preview));
     setShowModal(false);
     setContent("");
     setUploads([]);
@@ -59,10 +68,18 @@ const PostForm = ({ profile }: PostFormProps) => {
     setActiveSection(null);
   }
 
-  async function handleFileChange(ev: React.ChangeEvent<HTMLInputElement>) {
-    if (!ev.target.files?.length) return;
-    const newPhotos = await uploadPhotos.mutateAsync(ev.target.files);
-    setUploads((prev) => [...prev, ...newPhotos]);
+  async function handlePublish() {
+    if (!user) return;
+    const uploadedPhotos = uploads.length > 0
+      ? await uploadPhotos.mutateAsync(uploads.map((u) => u.file))
+      : [];
+    await createPost.mutateAsync({
+      userId: user, content, uploads: uploadedPhotos, selectedFriends, friends,
+      era: selectedEra,
+      nowPlaying: nowPlaying.trim() || null,
+      btsMembers: selectedMembers,
+    });
+    resetModal();
   }
 
   return (
@@ -98,7 +115,7 @@ const PostForm = ({ profile }: PostFormProps) => {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center px-4"
             style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}
-            onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false); }}
+            onClick={(e) => { if (e.target === e.currentTarget) resetModal(); }}
           >
             <motion.div
               key="modal-panel"
@@ -113,7 +130,7 @@ const PostForm = ({ profile }: PostFormProps) => {
                 <h2 className="text-[color:var(--text-primary)] font-semibold">Crear publicación</h2>
                 <button
                   type="button"
-                  onClick={() => setShowModal(false)}
+                  onClick={resetModal}
                   className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-[color:var(--text-muted)] hover:text-[color:var(--text-primary)] transition-colors"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
@@ -138,25 +155,38 @@ const PostForm = ({ profile }: PostFormProps) => {
               />
 
               {/* Media preview */}
-              {(uploads.length > 0 || isUploading) && (
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {uploads.map((upload) => (
-                    <div key={upload.id} className="rounded-lg overflow-hidden">
-                      {upload.tipo === "image/jpeg" && (
-                        <img src={upload.url} alt="preview" className="w-24 h-20 object-cover" />
-                      )}
-                      {upload.tipo === "video/mp4" && (
-                        <video className="w-24 h-20 object-cover rounded-lg">
-                          <source src={upload.url} />
+              {uploads.length > 0 && (
+                <div
+                  className={`mt-3 grid gap-2 ${
+                    uploads.length === 1
+                      ? "grid-cols-1"
+                      : uploads.length === 2
+                      ? "grid-cols-2"
+                      : "grid-cols-3"
+                  }`}
+                >
+                  {uploads.map((upload, i) => (
+                    <div key={i} className="relative group rounded-xl overflow-hidden aspect-square">
+                      {upload.file.type.startsWith("image/") ? (
+                        <img src={upload.preview} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <video className="w-full h-full object-cover">
+                          <source src={upload.preview} />
                         </video>
                       )}
+                      {/* Remove button */}
+                      <button
+                        type="button"
+                        onClick={() => removeUpload(i)}
+                        className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        style={{ background: "rgba(0,0,0,0.6)" }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 text-white">
+                          <path fillRule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+                        </svg>
+                      </button>
                     </div>
                   ))}
-                  {isUploading && (
-                    <div className="w-24 h-20 rounded-lg flex items-center justify-center bg-white/5">
-                      <span className="loader" style={{ width: 28, height: 28 }} />
-                    </div>
-                  )}
                 </div>
               )}
 
@@ -433,9 +463,9 @@ const PostForm = ({ profile }: PostFormProps) => {
                   type="button"
                   className="btn-accent text-sm py-2 px-5 ml-auto disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
                   onClick={handlePublish}
-                  disabled={createPost.isPending || !content.trim()}
+                  disabled={isPublishing || !content.trim()}
                 >
-                  {createPost.isPending ? "Publicando..." : "Publicar"}
+                  {isPublishing ? "Publicando..." : "Publicar"}
                 </button>
               </div>
             </motion.div>

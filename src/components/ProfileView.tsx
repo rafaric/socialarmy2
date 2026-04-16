@@ -56,6 +56,8 @@ export default function ProfileView({
   const [about, setAbout] = useState("");
   const [coverUrl, setCoverUrl] = useState("");
   const [profileUrl, setProfileUrl] = useState("");
+  const [avatarPreview, setAvatarPreview] = useState<{ file: File; url: string } | null>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
   const [bias, setBias] = useState<string | null>(profile.bias ?? null);
   const [biasWrecker, setBiasWrecker] = useState<string | null>(profile.bias_wrecker ?? null);
   const [favAlbum, setFavAlbum] = useState<string>(profile.fav_album ?? "");
@@ -95,19 +97,37 @@ export default function ProfileView({
     queryClient.invalidateQueries({ queryKey: ["profile", currentUserId] });
   }
 
-  async function handleProfileUpload(event: React.ChangeEvent<HTMLInputElement>) {
+  function handleProfileUpload(event: React.ChangeEvent<HTMLInputElement>) {
     if (!currentUserId || !event.target.files?.[0]) return;
     const file = event.target.files[0];
-    const fileName = `${currentUserId}/profile.${file.name.split(".").pop()}`;
-    const { error } = await supabase.storage.from("avatars").upload(fileName, file, {
+    setAvatarPreview({ file, url: URL.createObjectURL(file) });
+    event.target.value = "";
+  }
+
+  async function confirmAvatarUpload() {
+    if (!currentUserId || !avatarPreview) return;
+    setAvatarUploading(true);
+    const { compressImage } = await import("@/lib/compressImage");
+    const compressed = await compressImage(avatarPreview.file, 400, 0.88);
+    const fileName = `${currentUserId}/profile.jpg`;
+    const { error } = await supabase.storage.from("avatars").upload(fileName, compressed, {
       upsert: true,
-      contentType: file.type || "image/jpeg",
+      contentType: "image/jpeg",
     });
-    if (error) return;
-    const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(fileName);
-    setProfileUrl(urlData.publicUrl);
-    await supabase.from("profiles").update({ avatar: urlData.publicUrl }).eq("id", currentUserId);
-    queryClient.invalidateQueries({ queryKey: ["profile", currentUserId] });
+    if (!error) {
+      const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(fileName);
+      setProfileUrl(urlData.publicUrl);
+      await supabase.from("profiles").update({ avatar: urlData.publicUrl }).eq("id", currentUserId);
+      queryClient.invalidateQueries({ queryKey: ["profile", currentUserId] });
+    }
+    URL.revokeObjectURL(avatarPreview.url);
+    setAvatarPreview(null);
+    setAvatarUploading(false);
+  }
+
+  function cancelAvatarUpload() {
+    if (avatarPreview) URL.revokeObjectURL(avatarPreview.url);
+    setAvatarPreview(null);
   }
 
   async function handleSaveAbout() {
@@ -542,6 +562,66 @@ export default function ProfileView({
         )}
 
       </div>
+
+      {/* Avatar crop preview modal */}
+      <AnimatePresence>
+        {avatarPreview && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center px-4"
+            style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(6px)" }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92 }}
+              transition={{ duration: 0.22 }}
+              className="glass-card p-6 w-full max-w-sm flex flex-col items-center gap-5"
+            >
+              <h3 className="text-[color:var(--text-primary)] font-semibold text-base">
+                Vista previa del avatar
+              </h3>
+
+              {/* Circular preview */}
+              <div
+                className="w-40 h-40 rounded-full overflow-hidden"
+                style={{ boxShadow: "0 0 0 4px var(--accent)" }}
+              >
+                <img
+                  src={avatarPreview.url}
+                  alt="preview"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              <p className="text-xs text-[color:var(--text-muted)] text-center">
+                Así se verá tu foto de perfil. La imagen se redimensionará automáticamente.
+              </p>
+
+              <div className="flex gap-3 w-full">
+                <button
+                  type="button"
+                  onClick={cancelAvatarUpload}
+                  disabled={avatarUploading}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-medium text-[color:var(--text-secondary)] hover:bg-white/5 transition-colors border border-white/10 disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmAvatarUpload}
+                  disabled={avatarUploading}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-medium btn-accent disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
+                >
+                  {avatarUploading ? "Subiendo..." : "Confirmar"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

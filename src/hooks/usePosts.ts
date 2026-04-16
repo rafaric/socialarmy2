@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/browser";
+import { compressImage } from "@/lib/compressImage";
 import type { Post, Photo, TaggedFriend, Profile } from "@/types";
 import { v4 as uuidv4 } from "uuid";
 
@@ -148,10 +149,11 @@ export function useRealtimePosts() {
 
 export function useUploadPhotos() {
   return useMutation({
-    mutationFn: async (files: FileList): Promise<Photo[]> => {
+    mutationFn: async (files: File[]): Promise<Photo[]> => {
       const uploaded: Photo[] = [];
-      for (const file of Array.from(files)) {
-        const newName = Date.now() + file.name;
+      for (const rawFile of files) {
+        const file = await compressImage(rawFile);
+        const newName = `${Date.now()}-${file.name}`;
         const { data, error } = await supabase.storage.from("photos").upload(newName, file, {
           contentType: file.type,
         });
