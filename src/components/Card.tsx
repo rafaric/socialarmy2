@@ -2,19 +2,21 @@ interface CardProps {
   children: React.ReactNode;
   noPadding?: boolean;
   type?: string;
+  className?: string;
 }
 
-function Card({ children, noPadding, type }: CardProps) {
-  let classy = "bg-white shadow-md shadow-purple-500 mb-5 rounded-md";
+function Card({ children, noPadding, type, className = "" }: CardProps) {
+  let base = "glass-card mb-5";
+
   if (!noPadding) {
-    classy += " py-2 md:px-8 px-6";
-  }
-  if (type) {
-    classy +=
-      " flex flex-col justify-around h-fit py-12 items-center gap-8 w-[80%] my-3 mx-auto";
+    base += " py-4 md:px-8 px-5";
   }
 
-  return <div className={classy}>{children}</div>;
+  if (type) {
+    base += " flex flex-col justify-around h-fit py-12 items-center gap-8 w-[80%] my-3 mx-auto";
+  }
+
+  return <div className={`${base} ${className}`}>{children}</div>;
 }
 
 export default Card;

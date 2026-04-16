@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/browser";
 import { useAuthStore } from "@/store/useAuthStore";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -35,7 +36,9 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>{children}</AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>{children}</AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

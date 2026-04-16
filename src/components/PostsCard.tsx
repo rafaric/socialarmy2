@@ -62,132 +62,181 @@ const PostsCard = ({
   const isOwn = authorProfile.id === user;
 
   return (
-    <Card>
-      {/* Header */}
-      <div className="flex relative items-center mt-4">
-        <Link className="cursor-pointer hover:opacity-70" href={`/profile/${authorProfile.id}`}>
-          <Avatar url={authorProfile?.avatar} />
-        </Link>
-        <div className="grow pl-4">
-          <p>
-            {authorProfile?.name}{" "}
-            <span className="text-gray-500">ha compartido un post</span>
-          </p>
-          <p className="font-light text-gray-400 text-xs">
-            Hace {formatDistanceToNow(fecha, { locale: es })}
-            {tagged && tagged.length > 0 && (
-              <small className="px-1 text-gray-400 font-semibold">
-                Con{" "}
-                <span className="hover:text-gray-700 cursor-default hover:font-bold">
-                  {tagged[0]?.label}
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+    >
+      <Card>
+        {/* Header */}
+        <div className="flex relative items-center mt-2">
+          <Link className="cursor-pointer hover:opacity-80 transition-opacity" href={`/profile/${authorProfile.id}`}>
+            <Avatar url={authorProfile?.avatar} />
+          </Link>
+          <div className="grow pl-3">
+            <p className="text-[color:var(--text-primary)] font-medium text-sm">
+              {authorProfile?.name}{" "}
+              <span className="text-[color:var(--text-secondary)] font-normal">compartió un post</span>
+            </p>
+            <p className="text-[color:var(--text-muted)] text-xs mt-0.5">
+              Hace {formatDistanceToNow(fecha, { locale: es })}
+              {tagged && tagged.length > 0 && (
+                <span className="ml-2 text-[color:var(--accent-gold)]">
+                  con {tagged[0]?.label}
                 </span>
-              </small>
-            )}
-          </p>
-        </div>
-
-        <DropdownMenu.Root>
-          <DropdownMenu.Trigger asChild>
-            <button type="button" className="w-8 h-8 flex items-center justify-center rounded-md hover:border hover:border-purple-400 hover:shadow-md focus:outline-none" aria-label="Opciones">
-              <img src="/assets/icons/menu-dots-vertical.png" alt="" className="w-5 h-5" />
-            </button>
-          </DropdownMenu.Trigger>
-          <DropdownMenu.Portal>
-            <DropdownMenu.Content className="z-50 min-w-[140px] bg-white rounded-md shadow-lg border border-gray-100 py-1 text-sm" sideOffset={5} align="end">
-              <DropdownMenu.Item className="px-4 py-2 cursor-pointer hover:bg-purple-50 hover:text-purple-700 outline-none" onSelect={handleToggleSave}>
-                {isSaved ? "Quitar guardado" : "Guardar post"}
-              </DropdownMenu.Item>
-              <DropdownMenu.Item className="px-4 py-2 cursor-pointer hover:bg-purple-50 hover:text-purple-700 outline-none" onSelect={() => {}}>
-                Activar notificación
-              </DropdownMenu.Item>
-              {isOwn && (
-                <DropdownMenu.Item className="px-4 py-2 cursor-pointer hover:bg-red-50 hover:text-red-600 outline-none" onSelect={() => {}}>
-                  Borrar post
-                </DropdownMenu.Item>
               )}
-            </DropdownMenu.Content>
-          </DropdownMenu.Portal>
-        </DropdownMenu.Root>
-      </div>
-
-      {/* Content */}
-      <p className="px-1 py-5">{content}</p>
-
-      {/* Media */}
-      {photos && photos.length > 0 && (
-        <div className="flex gap-4 justify-center flex-wrap">
-          {photos.map((photo) => (
-            <div className="w-[500px] rounded-md overflow-hidden" key={photo.id}>
-              {photo.tipo === "image/jpeg" && (
-                <img src={photo.url} className="w-full max-h-[400px] object-cover" alt="" />
-              )}
-              {photo.tipo === "video/mp4" && (
-                <video autoPlay muted controls className="w-full max-h-[400px] object-cover">
-                  <source src={photo.url} />
-                </video>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Actions */}
-      <div className="pt-4 flex gap-3 text-lg items-center">
-        <button type="button" className="flex items-center gap-1 cursor-pointer" onClick={handleLikeClick}>
-          <AnimatePresence mode="wait" initial={false}>
-            {alreadyLiked ? (
-              <motion.img key="liked" src="/assets/icons/heart.png" alt="" className="w-7 heartbeat"
-                initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.6, opacity: 0 }}
-                transition={{ duration: 0.2, type: "spring", stiffness: 400 }} />
-            ) : (
-              <motion.img key="unliked" src="/assets/icons/heart-empty.png" alt="" className="w-7"
-                initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.6, opacity: 0 }}
-                transition={{ duration: 0.15 }} />
-            )}
-          </AnimatePresence>
-          {likes.length}
-        </button>
-        <span className="flex items-center gap-1">
-          <img className="w-8" src="/assets/icons/chat.png" alt="" />
-          {comments.length}
-        </span>
-      </div>
-
-      {/* Comments */}
-      <div className="inline-block min-w-[40%]">
-        {comments.map((comment) => (
-          <div key={comment.id} className="min-w-[40%] items-center bg-purple-100 flex gap-4 rounded-full my-4 p-1 border border-purple-200">
-            <Avatar url={comment.profiles.avatar} size="md" />
-            <div className="flex flex-col">
-              <div>
-                <Link className="hover:underline hover:text-purple-500" href={`/profile/${comment.profiles.id}`}>
-                  {comment.profiles.name}
-                </Link>
-                <span className="text-gray-400 text-sm">
-                  {" "}- Hace {formatDistanceToNow(new Date(comment.created_at), { locale: es })}
-                </span>
-              </div>
-              <p className="text-gray-500 italic">{comment.content}</p>
-            </div>
+            </p>
           </div>
-        ))}
-      </div>
 
-      {/* Comment input */}
-      <div className="flex mt-3 gap-4 items-center">
-        <Avatar url={session?.user?.user_metadata?.avatar_url} size="sm" />
-        <div className="relative border grow rounded-full">
-          <form onSubmit={postComment}>
+          <DropdownMenu.Root>
+            <DropdownMenu.Trigger asChild>
+              <button
+                type="button"
+                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 focus:outline-none transition-colors"
+                aria-label="Opciones"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-[color:var(--text-secondary)]">
+                  <path fillRule="evenodd" d="M10.5 6a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Zm0 6a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Zm0 6a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Portal>
+              <DropdownMenu.Content
+                className="z-50 min-w-[160px] glass-card rounded-lg shadow-xl py-1 text-sm"
+                sideOffset={5}
+                align="end"
+              >
+                <DropdownMenu.Item
+                  className="px-4 py-2.5 cursor-pointer text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] hover:bg-white/5 outline-none transition-colors"
+                  onSelect={handleToggleSave}
+                >
+                  {isSaved ? "Quitar guardado" : "Guardar post"}
+                </DropdownMenu.Item>
+                <DropdownMenu.Item
+                  className="px-4 py-2.5 cursor-pointer text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] hover:bg-white/5 outline-none transition-colors"
+                  onSelect={() => {}}
+                >
+                  Activar notificación
+                </DropdownMenu.Item>
+                {isOwn && (
+                  <>
+                    <DropdownMenu.Separator className="h-px bg-white/10 my-1" />
+                    <DropdownMenu.Item
+                      className="px-4 py-2.5 cursor-pointer text-red-400 hover:bg-red-500/10 outline-none transition-colors"
+                      onSelect={() => {}}
+                    >
+                      Borrar post
+                    </DropdownMenu.Item>
+                  </>
+                )}
+              </DropdownMenu.Content>
+            </DropdownMenu.Portal>
+          </DropdownMenu.Root>
+        </div>
+
+        {/* Content */}
+        <p className="py-4 text-[color:var(--text-primary)] leading-relaxed">{content}</p>
+
+        {/* Media */}
+        {photos && photos.length > 0 && (
+          <div className="flex gap-3 justify-center flex-wrap rounded-lg overflow-hidden -mx-5 md:-mx-8">
+            {photos.map((photo) => (
+              <div key={photo.id} className="w-full">
+                {photo.tipo === "image/jpeg" && (
+                  <img src={photo.url} className="w-full max-h-[480px] object-cover" alt="" />
+                )}
+                {photo.tipo === "video/mp4" && (
+                  <video autoPlay muted controls className="w-full max-h-[480px] object-cover">
+                    <source src={photo.url} />
+                  </video>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="pt-4 flex gap-4 items-center border-t border-white/5 mt-2">
+          <button
+            type="button"
+            className="flex items-center gap-1.5 text-sm text-[color:var(--text-secondary)] hover:text-[color:var(--accent)] transition-colors"
+            onClick={handleLikeClick}
+          >
+            <AnimatePresence mode="wait" initial={false}>
+              {alreadyLiked ? (
+                <motion.span
+                  key="liked"
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.5, opacity: 0 }}
+                  transition={{ duration: 0.2, type: "spring", stiffness: 400 }}
+                  className="text-lg heartbeat"
+                >
+                  💜
+                </motion.span>
+              ) : (
+                <motion.span
+                  key="unliked"
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.5, opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  className="text-lg"
+                >
+                  🤍
+                </motion.span>
+              )}
+            </AnimatePresence>
+            <span>{likes.length}</span>
+          </button>
+
+          <button type="button" className="flex items-center gap-1.5 text-sm text-[color:var(--text-secondary)] hover:text-[color:var(--accent)] transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+              <path fillRule="evenodd" d="M4.804 21.644A6.707 6.707 0 0 0 6 21.75a6.721 6.721 0 0 0 3.583-1.029c.774.182 1.584.279 2.417.279 5.322 0 9.75-3.97 9.75-9 0-5.03-4.428-9-9.75-9s-9.75 3.97-9.75 9c0 2.409 1.025 4.587 2.674 6.192.232.226.277.428.254.543a3.73 3.73 0 0 1-.814 1.686.75.75 0 0 0 .44 1.223ZM8.25 10.875a1.125 1.125 0 1 0 0 2.25 1.125 1.125 0 0 0 0-2.25ZM10.875 12a1.125 1.125 0 1 1 2.25 0 1.125 1.125 0 0 1-2.25 0Zm4.875-1.125a1.125 1.125 0 1 0 0 2.25 1.125 1.125 0 0 0 0-2.25Z" clipRule="evenodd" />
+            </svg>
+            <span>{comments.length}</span>
+          </button>
+        </div>
+
+        {/* Comments */}
+        {comments.length > 0 && (
+          <div className="mt-3 space-y-2">
+            {comments.map((comment) => (
+              <div
+                key={comment.id}
+                className="flex items-start gap-3 bg-white/5 rounded-xl p-3 border border-white/5"
+              >
+                <Avatar url={comment.profiles.avatar} size="md" />
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Link className="text-sm font-medium text-[color:var(--text-primary)] hover:text-[color:var(--accent)] transition-colors" href={`/profile/${comment.profiles.id}`}>
+                      {comment.profiles.name}
+                    </Link>
+                    <span className="text-[color:var(--text-muted)] text-xs">
+                      · {formatDistanceToNow(new Date(comment.created_at), { locale: es })}
+                    </span>
+                  </div>
+                  <p className="text-[color:var(--text-secondary)] text-sm mt-0.5">{comment.content}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Comment input */}
+        <div className="flex mt-4 gap-3 items-center">
+          <Avatar url={session?.user?.user_metadata?.avatar_url} size="sm" />
+          <form onSubmit={postComment} className="flex-1">
             <input
-              className="block w-full p-3 overflow-hidden h-12 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-300"
+              className="army-input w-full px-4 py-2.5 text-sm rounded-xl"
               placeholder="Deja un comentario..."
               value={commentText}
               onChange={(ev) => setCommentText(ev.target.value)}
             />
           </form>
         </div>
-      </div>
-    </Card>
+      </Card>
+    </motion.div>
   );
 };
 

@@ -15,6 +15,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body>
+        <div className="aurora-bg" aria-hidden="true" />
         <Providers>{children}</Providers>
       </body>
     </html>

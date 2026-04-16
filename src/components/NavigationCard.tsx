@@ -1,62 +1,121 @@
 "use client";
 
-import Card from "./Card";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion } from "framer-motion";
 import { useAuthStore } from "@/store/useAuthStore";
 import { supabase } from "@/lib/supabase/browser";
+
+const NAV_ITEMS = [
+  {
+    href: "/",
+    label: "Inicio",
+    exact: true,
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+        <path d="M11.47 3.841a.75.75 0 0 1 1.06 0l8.69 8.69a.75.75 0 1 0 1.06-1.061l-8.689-8.69a2.25 2.25 0 0 0-3.182 0l-8.69 8.69a.75.75 0 1 0 1.061 1.06l8.69-8.689Z" />
+        <path d="m12 5.432 8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 0 1-.75-.75v-4.5a.75.75 0 0 0-.75-.75h-3a.75.75 0 0 0-.75.75V21a.75.75 0 0 1-.75.75H5.625a1.875 1.875 0 0 1-1.875-1.875v-6.198a1.2 1.2 0 0 0 .091-.086L12 5.432Z" />
+      </svg>
+    ),
+  },
+  {
+    href: null,
+    label: "Amigos",
+    friendsLink: true,
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+        <path d="M4.5 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM14.25 8.625a3.375 3.375 0 1 1 6.75 0 3.375 3.375 0 0 1-6.75 0ZM1.5 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM17.25 19.128l-.001.144a2.25 2.25 0 0 1-.233.96 10.088 10.088 0 0 0 5.06-1.01.75.75 0 0 0 .42-.643 4.875 4.875 0 0 0-6.957-4.611 8.586 8.586 0 0 1 1.71 5.157v.003Z" />
+      </svg>
+    ),
+  },
+  {
+    href: "/saved",
+    label: "Guardados",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+        <path fillRule="evenodd" d="M6.32 2.577a49.255 49.255 0 0 1 11.36 0c1.497.174 2.57 1.46 2.57 2.93V21a.75.75 0 0 1-1.085.67L12 18.089l-7.165 3.583A.75.75 0 0 1 3.75 21V5.507c0-1.47 1.073-2.756 2.57-2.93Z" clipRule="evenodd" />
+      </svg>
+    ),
+  },
+  {
+    href: "/notifications",
+    label: "Notificaciones",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+        <path fillRule="evenodd" d="M5.25 9a6.75 6.75 0 0 1 13.5 0v.75c0 2.123.8 4.057 2.118 5.52a.75.75 0 0 1-.297 1.206c-1.544.57-3.16.99-4.831 1.243a3.75 3.75 0 1 1-7.48 0 24.585 24.585 0 0 1-4.831-1.244.75.75 0 0 1-.298-1.205A8.217 8.217 0 0 0 5.25 9.75V9Zm4.502 8.9a2.25 2.25 0 1 0 4.496 0 25.057 25.057 0 0 1-4.496 0Z" clipRule="evenodd" />
+      </svg>
+    ),
+  },
+];
 
 function NavigationCard() {
   const pathname = usePathname();
   const { session } = useAuthStore();
 
-  const active =
-    "flex md:gap-3 md:mx-0 py-4 bg-purple-500 text-white md:-mx-10 md:px-8 px-4 rounded-md shadow-lg shadow-purple-400 box-border";
-  const hover =
-    "flex md:gap-3 md:mx-0 py-4 hover:bg-purple-200/50 md:-mx-2 md:px-2 px-4 hover:-mx-4 hover:justify-center rounded-md hover:shadow-md hover:transition-all hover:duration-300 hover:scale-105 transition-all duration-300";
-
   async function signout() {
     await supabase.auth.signOut();
   }
 
+  function isActive(item: typeof NAV_ITEMS[number]) {
+    if (item.friendsLink) {
+      return pathname.startsWith("/profile/") && pathname.includes("tab=friends");
+    }
+    if (item.exact) return pathname === item.href;
+    return pathname === item.href;
+  }
+
+  function getHref(item: typeof NAV_ITEMS[number]) {
+    if (item.friendsLink) return `/profile/${session?.user?.id}?tab=friends`;
+    return item.href ?? "/";
+  }
+
   return (
-    <Card>
-      <div className="flex md:block justify-center">
-        <h2 className="hidden md:visible text-gray-400 font-bold md:text-center md:pt-3">
-          Menú
-        </h2>
-        <Link className={pathname === "/" ? active : hover} href="/">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
-          </svg>
-          <span className="hidden md:block">Home</span>
-        </Link>
-        <Link className={pathname.startsWith("/profile/") && pathname.includes("tab=friends") ? active : hover} href={`/profile/${session?.user?.id}?tab=friends`}>
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
-          </svg>
-          <span className="hidden md:block">Amigos</span>
-        </Link>
-        <Link className={pathname === "/saved" ? active : hover} href="/saved">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
-          </svg>
-          <span className="hidden md:block">Guardados</span>
-        </Link>
-        <Link className={pathname === "/notifications" ? active : hover} href="/notifications">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0M3.124 7.5A8.969 8.969 0 015.292 3m13.416 0a8.969 8.969 0 012.168 4.5" />
-          </svg>
-          <span className="hidden md:block">Notificaciones</span>
-        </Link>
-        <Link className={hover} href="/" onClick={signout}>
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
-          </svg>
-          <span className="hidden md:block">Logout</span>
-        </Link>
+    <nav className="glass-card py-6 px-4 mb-5">
+      {/* Logo */}
+      <div className="hidden md:flex flex-col items-center mb-8 gap-1">
+        <span className="font-monotone text-xl text-gold tracking-widest">ARMY</span>
+        <span className="text-[10px] tracking-[0.3em] text-[color:var(--text-muted)] uppercase">social network</span>
       </div>
-    </Card>
+
+      <div className="flex md:flex-col gap-1">
+        {NAV_ITEMS.map((item) => {
+          const active = isActive(item);
+          return (
+            <Link key={item.label} href={getHref(item)} className="relative group">
+              {active && (
+                <motion.div
+                  layoutId="nav-indicator"
+                  className="nav-active absolute inset-0 rounded-lg"
+                  transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                />
+              )}
+              <span
+                className={`relative flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-200 ${
+                  active
+                    ? "text-white"
+                    : "text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] hover:bg-white/5"
+                }`}
+              >
+                {item.icon}
+                <span className="hidden md:block text-sm font-medium">{item.label}</span>
+              </span>
+            </Link>
+          );
+        })}
+
+        {/* Logout */}
+        <button
+          type="button"
+          onClick={signout}
+          className="relative group flex items-center gap-3 px-4 py-3 rounded-lg text-[color:var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-colors duration-200 mt-4 md:mt-8"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+            <path fillRule="evenodd" d="M7.5 3.75A1.5 1.5 0 0 0 6 5.25v13.5a1.5 1.5 0 0 0 1.5 1.5h6a1.5 1.5 0 0 0 1.5-1.5V15a.75.75 0 0 1 1.5 0v3.75a3 3 0 0 1-3 3h-6a3 3 0 0 1-3-3V5.25a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3V9A.75.75 0 0 1 15 9V5.25a1.5 1.5 0 0 0-1.5-1.5h-6Zm10.72 4.72a.75.75 0 0 1 1.06 0l3 3a.75.75 0 0 1 0 1.06l-3 3a.75.75 0 1 1-1.06-1.06l1.72-1.72H9a.75.75 0 0 1 0-1.5h10.94l-1.72-1.72a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+          </svg>
+          <span className="hidden md:block text-sm font-medium">Salir</span>
+        </button>
+      </div>
+    </nav>
   );
 }
 
