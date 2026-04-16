@@ -285,43 +285,42 @@ export default function ProfileView({
                 )}
               </div>
 
-              {isOwn && (
-                <div className="flex gap-2 mt-5 shrink-0">
-                  {!editing ? (
-                    <button
-                      type="button"
-                      onClick={() => { setEditing(true); setAbout(profile.about ?? ""); }}
-                      className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-[color:var(--text-muted)] hover:text-[color:var(--text-primary)] transition-colors"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-                        <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32l8.4-8.4Z" />
-                      </svg>
-                    </button>
-                  ) : (
-                    <>
-                      <button
-                        type="button"
-                        onClick={handleSaveAbout}
-                        className="w-8 h-8 flex items-center justify-center rounded-lg bg-[color:var(--accent)]/20 text-[color:var(--accent)] hover:bg-[color:var(--accent)]/30 transition-colors"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-                          <path fillRule="evenodd" d="M19.916 4.626a.75.75 0 0 1 .208 1.04l-9 13.5a.75.75 0 0 1-1.154.114l-6-6a.75.75 0 0 1 1.06-1.06l5.353 5.353 8.493-12.74a.75.75 0 0 1 1.04-.207Z" clipRule="evenodd" />
-                        </svg>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setEditing(false)}
-                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-[color:var(--text-muted)] hover:text-[color:var(--text-primary)] transition-colors"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-                          <path fillRule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
-                        </svg>
-                      </button>
-                    </>
-                  )}
-                </div>
+              {isOwn && !editing && (
+                <button
+                  type="button"
+                  onClick={() => { setEditing(true); setAbout(profile.about ?? ""); }}
+                  className="mt-1 shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[color:var(--text-muted)] hover:text-[color:var(--text-primary)] hover:bg-white/10 transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
+                    <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32l8.4-8.4Z" />
+                  </svg>
+                  Editar
+                </button>
               )}
             </div>
+            {/* Guardar / Cancelar — solo en modo edición */}
+            {isOwn && editing && (
+              <div className="flex gap-3 pt-2 border-t border-white/10">
+                <button
+                  type="button"
+                  onClick={handleSaveAbout}
+                  className="btn-accent flex-1 py-2.5 text-sm flex items-center justify-center gap-2"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                    <path fillRule="evenodd" d="M19.916 4.626a.75.75 0 0 1 .208 1.04l-9 13.5a.75.75 0 0 1-1.154.114l-6-6a.75.75 0 0 1 1.06-1.06l5.353 5.353 8.493-12.74a.75.75 0 0 1 1.04-.207Z" clipRule="evenodd" />
+                  </svg>
+                  Guardar cambios
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditing(false)}
+                  className="px-5 py-2.5 text-sm rounded-xl text-[color:var(--text-muted)] hover:text-[color:var(--text-primary)] hover:bg-white/10 transition-colors font-medium"
+                >
+                  Cancelar
+                </button>
+              </div>
+            )}
+
             {/* BTS fields */}
             <div className="flex flex-col gap-5">
               <h2 className="text-sm font-semibold text-[color:var(--text-secondary)] uppercase tracking-wider">BTS</h2>
