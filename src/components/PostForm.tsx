@@ -7,6 +7,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useFriends } from "@/hooks/useFriends";
 import { useCreatePost, useUploadPhotos } from "@/hooks/usePosts";
 import { BTS_ERAS } from "@/lib/bts-eras";
+import { BTS_DISCOGRAPHY } from "@/lib/bts-discography";
 import type { Profile, Photo, TaggedFriend } from "@/types";
 
 interface PostFormProps {
@@ -26,8 +27,10 @@ const PostForm = ({ profile }: PostFormProps) => {
   const [amigos, setAmigos] = useState(false);
   const [selectedEra, setSelectedEra] = useState<string | null>(null);
   const [showEraSelector, setShowEraSelector] = useState(false);
-  const [nowPlaying, setNowPlaying] = useState("");
+  const [selectedAlbum, setSelectedAlbum] = useState("");
+  const [selectedTrack, setSelectedTrack] = useState("");
   const [showNowPlaying, setShowNowPlaying] = useState(false);
+  const nowPlaying = selectedAlbum && selectedTrack ? `${selectedTrack} — ${BTS_DISCOGRAPHY.find(a => a.key === selectedAlbum)?.title}` : "";
 
   const isUploading = uploadPhotos.isPending;
 
@@ -44,7 +47,8 @@ const PostForm = ({ profile }: PostFormProps) => {
     setSelectedFriends([]);
     setSelectedEra(null);
     setShowEraSelector(false);
-    setNowPlaying("");
+    setSelectedAlbum("");
+    setSelectedTrack("");
     setShowNowPlaying(false);
   }
 
@@ -170,29 +174,58 @@ const PostForm = ({ profile }: PostFormProps) => {
                     className="mt-3 overflow-hidden"
                   >
                     <div
-                      className="flex items-center gap-3 px-3 py-2 rounded-xl"
+                      className="flex flex-col gap-2 px-3 py-3 rounded-xl"
                       style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
                     >
-                      <div className="flex items-end gap-[3px] h-4 shrink-0">
-                        {[1,2,3,4].map((i) => (
-                          <motion.div key={i} className="w-[3px] rounded-full"
-                            style={{ background: "var(--accent)" }}
-                            animate={{ height: ["40%","100%","60%","90%","40%"] }}
-                            transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.15, ease: "easeInOut" }}
-                          />
-                        ))}
+                      {/* Animated bars + label */}
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-end gap-[3px] h-4 shrink-0">
+                          {[1,2,3,4].map((i) => (
+                            <motion.div key={i} className="w-[3px] rounded-full"
+                              style={{ background: selectedTrack ? "var(--accent)" : "var(--text-muted)" }}
+                              animate={selectedTrack ? { height: ["40%","100%","60%","90%","40%"] } : { height: "40%" }}
+                              transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.15, ease: "easeInOut" }}
+                            />
+                          ))}
+                        </div>
+                        <span className="text-[10px] tracking-widest text-[color:var(--text-muted)] uppercase">
+                          {selectedTrack ? `${selectedTrack} — ${BTS_DISCOGRAPHY.find(a => a.key === selectedAlbum)?.title}` : "Elegí un álbum y canción"}
+                        </span>
+                        {(selectedAlbum || selectedTrack) && (
+                          <button
+                            type="button"
+                            onClick={() => { setSelectedAlbum(""); setSelectedTrack(""); }}
+                            className="ml-auto text-[color:var(--text-muted)] hover:text-[color:var(--text-primary)] transition-colors text-xs"
+                          >✕</button>
+                        )}
                       </div>
-                      <input
-                        type="text"
-                        className="flex-1 bg-transparent text-sm text-[color:var(--text-primary)] placeholder:text-[color:var(--text-muted)] outline-none"
-                        placeholder="Artista — Canción"
-                        value={nowPlaying}
-                        onChange={(e) => setNowPlaying(e.target.value)}
-                        autoFocus
-                      />
-                      {nowPlaying && (
-                        <button type="button" onClick={() => setNowPlaying("")} className="text-[color:var(--text-muted)] hover:text-[color:var(--text-primary)] transition-colors text-xs">✕</button>
-                      )}
+
+                      {/* Album select */}
+                      <select
+                        value={selectedAlbum}
+                        onChange={(e) => { setSelectedAlbum(e.target.value); setSelectedTrack(""); }}
+                        className="army-input w-full px-3 py-2 text-sm rounded-lg appearance-none cursor-pointer"
+                      >
+                        <option value="">Álbum...</option>
+                        {BTS_DISCOGRAPHY.map((album) => (
+                          <option key={album.key} value={album.key}>
+                            {album.title} ({album.year})
+                          </option>
+                        ))}
+                      </select>
+
+                      {/* Track select */}
+                      <select
+                        value={selectedTrack}
+                        onChange={(e) => setSelectedTrack(e.target.value)}
+                        disabled={!selectedAlbum}
+                        className="army-input w-full px-3 py-2 text-sm rounded-lg appearance-none cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        <option value="">Canción...</option>
+                        {BTS_DISCOGRAPHY.find(a => a.key === selectedAlbum)?.tracks.map((track) => (
+                          <option key={track} value={track}>{track}</option>
+                        ))}
+                      </select>
                     </div>
                   </motion.div>
                 )}
@@ -267,15 +300,13 @@ const PostForm = ({ profile }: PostFormProps) => {
                     title="Now Playing"
                     onClick={() => setShowNowPlaying(!showNowPlaying)}
                     className={`h-9 px-3 flex items-center gap-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
-                      nowPlaying
-                        ? "text-[color:var(--accent)] bg-[color:var(--accent)]/10"
-                        : showNowPlaying
+                      selectedTrack || showNowPlaying
                         ? "text-[color:var(--accent)] bg-[color:var(--accent)]/10"
                         : "text-[color:var(--text-secondary)] hover:text-[color:var(--accent)] hover:bg-white/5"
                     }`}
                   >
                     <span>🎵</span>
-                    <span className="hidden sm:inline">{nowPlaying || "Now Playing"}</span>
+                    <span className="hidden sm:inline">{selectedTrack || "Now Playing"}</span>
                   </button>
 
                   {/* Era toggle */}
