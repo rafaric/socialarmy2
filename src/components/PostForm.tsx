@@ -8,6 +8,7 @@ import { useFriends } from "@/hooks/useFriends";
 import { useCreatePost, useUploadPhotos } from "@/hooks/usePosts";
 import { BTS_ERAS } from "@/lib/bts-eras";
 import { BTS_DISCOGRAPHY } from "@/lib/bts-discography";
+import { BTS_MEMBERS, getMemberByKey } from "@/lib/bts-members";
 import type { Profile, Photo, TaggedFriend } from "@/types";
 
 interface PostFormProps {
@@ -20,17 +21,22 @@ const PostForm = ({ profile }: PostFormProps) => {
   const createPost = useCreatePost();
   const uploadPhotos = useUploadPhotos();
 
+  type ActiveSection = "friends" | "nowplaying" | "members" | "era" | null;
+
   const [showModal, setShowModal] = useState(false);
   const [content, setContent] = useState("");
   const [uploads, setUploads] = useState<Photo[]>([]);
   const [selectedFriends, setSelectedFriends] = useState<TaggedFriend[]>([]);
-  const [amigos, setAmigos] = useState(false);
   const [selectedEra, setSelectedEra] = useState<string | null>(null);
-  const [showEraSelector, setShowEraSelector] = useState(false);
   const [selectedAlbum, setSelectedAlbum] = useState("");
   const [selectedTrack, setSelectedTrack] = useState("");
-  const [showNowPlaying, setShowNowPlaying] = useState(false);
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [activeSection, setActiveSection] = useState<ActiveSection>(null);
   const nowPlaying = selectedAlbum && selectedTrack ? `${selectedTrack} — ${BTS_DISCOGRAPHY.find(a => a.key === selectedAlbum)?.title}` : "";
+
+  function toggleSection(section: ActiveSection) {
+    setActiveSection((prev) => (prev === section ? null : section));
+  }
 
   const isUploading = uploadPhotos.isPending;
 
@@ -40,16 +46,17 @@ const PostForm = ({ profile }: PostFormProps) => {
       userId: user, content, uploads, selectedFriends, friends,
       era: selectedEra,
       nowPlaying: nowPlaying.trim() || null,
+      btsMembers: selectedMembers,
     });
     setShowModal(false);
     setContent("");
     setUploads([]);
     setSelectedFriends([]);
     setSelectedEra(null);
-    setShowEraSelector(false);
     setSelectedAlbum("");
     setSelectedTrack("");
-    setShowNowPlaying(false);
+    setSelectedMembers([]);
+    setActiveSection(null);
   }
 
   async function handleFileChange(ev: React.ChangeEvent<HTMLInputElement>) {
@@ -154,7 +161,7 @@ const PostForm = ({ profile }: PostFormProps) => {
               )}
 
               {/* Tagged friends */}
-              {amigos && (
+              {activeSection === "friends" && (
                 <div className="mt-3">
                   <FriendSelector
                     onSelect={setSelectedFriends}
@@ -166,7 +173,7 @@ const PostForm = ({ profile }: PostFormProps) => {
 
               {/* Now Playing */}
               <AnimatePresence>
-                {showNowPlaying && (
+                {activeSection === "nowplaying" && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
@@ -242,7 +249,7 @@ const PostForm = ({ profile }: PostFormProps) => {
 
               {/* Era selector */}
               <AnimatePresence>
-                {showEraSelector && (
+                {activeSection === "era" && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
@@ -274,9 +281,60 @@ const PostForm = ({ profile }: PostFormProps) => {
                 )}
               </AnimatePresence>
 
+              {/* BTS Member selector */}
+              <AnimatePresence>
+                {activeSection === "members" && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mt-3 overflow-hidden"
+                  >
+                    <div
+                      className="px-3 py-3 rounded-xl"
+                      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+                    >
+                      <p className="text-[10px] tracking-widest text-[color:var(--text-muted)] uppercase mb-3">
+                        Etiquetar miembro
+                      </p>
+                      <div className="flex gap-3 flex-wrap">
+                        {BTS_MEMBERS.map((member) => {
+                          const isSelected = selectedMembers.includes(member.key);
+                          return (
+                            <motion.button
+                              key={member.key}
+                              type="button"
+                              whileTap={{ scale: 0.92 }}
+                              onClick={() => setSelectedMembers((prev) =>
+                                isSelected ? prev.filter((k) => k !== member.key) : [...prev, member.key]
+                              )}
+                              className="flex flex-col items-center gap-1"
+                            >
+                              <div
+                                className="w-11 h-11 rounded-full overflow-hidden transition-all duration-200"
+                                style={{
+                                  outline: isSelected ? `2px solid ${member.color}` : "2px solid transparent",
+                                  outlineOffset: "2px",
+                                  boxShadow: isSelected ? `0 0 10px ${member.color}60` : "none",
+                                }}
+                              >
+                                <img src={member.photo} alt={member.name} className="w-full h-full object-cover object-top" />
+                              </div>
+                              <span className="text-[10px]" style={{ color: isSelected ? member.color : "var(--text-muted)" }}>
+                                {member.name}
+                              </span>
+                            </motion.button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               {/* Actions bar */}
-              <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/10">
-                <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/10 gap-2 flex-wrap">
+                <div className="flex items-center gap-1.5 flex-wrap">
                   <label
                     htmlFor="images"
                     className="w-9 h-9 flex items-center justify-center rounded-lg cursor-pointer text-[color:var(--text-secondary)] hover:text-[color:var(--accent)] hover:bg-white/5 transition-colors"
@@ -288,62 +346,92 @@ const PostForm = ({ profile }: PostFormProps) => {
                     <input id="images" type="file" accept=".jpg,.gif,.mp4,.webm" className="hidden" onChange={handleFileChange} multiple />
                   </label>
 
+                  {/* Friends toggle */}
                   <button
                     type="button"
-                    title="Etiquetár amigos"
-                    onClick={() => setAmigos(!amigos)}
-                    className={`w-9 h-9 flex items-center justify-center rounded-lg transition-colors ${
-                      amigos
-                        ? "text-[color:var(--accent)] bg-[color:var(--accent)]/10"
-                        : "text-[color:var(--text-secondary)] hover:text-[color:var(--accent)] hover:bg-white/5"
+                    title="Etiquetar amigos"
+                    onClick={() => toggleSection("friends")}
+                    className={`h-9 px-3 flex items-center gap-1.5 rounded-lg text-xs font-medium transition-all duration-200 border ${
+                      activeSection === "friends" || selectedFriends.length > 0
+                        ? "text-[color:var(--accent)] bg-[color:var(--accent)]/10 border-[color:var(--accent)]/30"
+                        : "text-[color:var(--text-primary)] bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
                     }`}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 shrink-0">
                       <path d="M4.5 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM14.25 8.625a3.375 3.375 0 1 1 6.75 0 3.375 3.375 0 0 1-6.75 0ZM1.5 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM17.25 19.128l-.001.144a2.25 2.25 0 0 1-.233.96 10.088 10.088 0 0 0 5.06-1.01.75.75 0 0 0 .42-.643 4.875 4.875 0 0 0-6.957-4.611 8.586 8.586 0 0 1 1.71 5.157v.003Z" />
                     </svg>
+                    <span className="hidden sm:inline">
+                      {selectedFriends.length > 0 ? `${selectedFriends.length} amigo${selectedFriends.length > 1 ? "s" : ""}` : "Amigos"}
+                    </span>
                   </button>
 
                   {/* Now Playing toggle */}
                   <button
                     type="button"
                     title="Now Playing"
-                    onClick={() => setShowNowPlaying(!showNowPlaying)}
-                    className={`h-9 px-3 flex items-center gap-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
-                      selectedTrack || showNowPlaying
-                        ? "text-[color:var(--accent)] bg-[color:var(--accent)]/10"
-                        : "text-[color:var(--text-secondary)] hover:text-[color:var(--accent)] hover:bg-white/5"
+                    onClick={() => toggleSection("nowplaying")}
+                    className={`h-9 px-3 flex items-center gap-1.5 rounded-lg text-xs font-medium transition-all duration-200 border ${
+                      activeSection === "nowplaying" || selectedTrack
+                        ? "text-[color:var(--accent)] bg-[color:var(--accent)]/10 border-[color:var(--accent)]/30"
+                        : "text-[color:var(--text-primary)] bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
                     }`}
                   >
                     <span>🎵</span>
                     <span className="hidden sm:inline">{selectedTrack || "Now Playing"}</span>
                   </button>
 
+                  {/* Members toggle */}
+                  <button
+                    type="button"
+                    title="Etiquetar miembro BTS"
+                    onClick={() => toggleSection("members")}
+                    className={`h-9 px-3 flex items-center gap-1.5 rounded-lg text-xs font-medium transition-all duration-200 border ${
+                      activeSection === "members" || selectedMembers.length > 0
+                        ? "text-[color:var(--accent)] bg-[color:var(--accent)]/10 border-[color:var(--accent)]/30"
+                        : "text-[color:var(--text-primary)] bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
+                    }`}
+                  >
+                    {selectedMembers.length > 0 ? (
+                      <div className="flex -space-x-1.5">
+                        {selectedMembers.slice(0, 3).map((key) => {
+                          const m = getMemberByKey(key);
+                          return m ? (
+                            <img key={key} src={m.photo} alt={m.name} className="w-5 h-5 rounded-full object-cover object-top ring-1 ring-[var(--bg-surface)]" />
+                          ) : null;
+                        })}
+                      </div>
+                    ) : (
+                      <span>💜</span>
+                    )}
+                    <span className="hidden sm:inline">
+                      {selectedMembers.length > 0 ? `${selectedMembers.length} miembro${selectedMembers.length > 1 ? "s" : ""}` : "Miembros"}
+                    </span>
+                  </button>
+
                   {/* Era toggle */}
                   <button
                     type="button"
                     title="Tag de era"
-                    onClick={() => setShowEraSelector(!showEraSelector)}
-                    className={`h-9 px-3 flex items-center gap-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
-                      selectedEra
-                        ? "bg-white/10 text-[color:var(--text-primary)]"
-                        : showEraSelector
-                        ? "text-[color:var(--accent)] bg-[color:var(--accent)]/10"
-                        : "text-[color:var(--text-secondary)] hover:text-[color:var(--accent)] hover:bg-white/5"
+                    onClick={() => toggleSection("era")}
+                    className={`h-9 px-3 flex items-center gap-1.5 rounded-lg text-xs font-medium transition-all duration-200 border ${
+                      activeSection === "era"
+                        ? "text-[color:var(--accent)] bg-[color:var(--accent)]/10 border-[color:var(--accent)]/30"
+                        : "text-[color:var(--text-primary)] bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
                     }`}
                     style={selectedEra ? {
                       color: BTS_ERAS.find(e => e.key === selectedEra)?.color,
-                      background: BTS_ERAS.find(e => e.key === selectedEra)?.bg,
-                      border: `1px solid ${BTS_ERAS.find(e => e.key === selectedEra)?.color}`,
+                      background: BTS_ERAS.find(e => e.key === selectedEra)?.bg + "33",
+                      borderColor: BTS_ERAS.find(e => e.key === selectedEra)?.color + "60",
                     } : {}}
                   >
-                    ✨
+                    <span>✨</span>
                     <span>{selectedEra ? BTS_ERAS.find(e => e.key === selectedEra)?.label : "Era"}</span>
                   </button>
                 </div>
 
                 <button
                   type="button"
-                  className="btn-accent text-sm py-2 px-5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
+                  className="btn-accent text-sm py-2 px-5 ml-auto disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
                   onClick={handlePublish}
                   disabled={createPost.isPending || !content.trim()}
                 >

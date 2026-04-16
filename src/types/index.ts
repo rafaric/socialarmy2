@@ -7,7 +7,6 @@ export interface Profile {
   army_since?: string | null;
   bias?: string | null;
   bias_wrecker?: string | null;
-  bts_husband?: string | null;
   fav_song?: string | null;
   fav_album?: string | null;
 }
@@ -34,6 +33,7 @@ export interface Post {
   parent?: string | null;
   era?: string | null;
   now_playing?: string | null;
+  bts_members?: string[] | null;
 }
 
 export type ReactionType = "heart" | "fire" | "magic" | "cry";

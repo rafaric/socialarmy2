@@ -9,13 +9,16 @@ import { useProfile } from "@/hooks/useProfile";
 import { usePosts } from "@/hooks/usePosts";
 import PostsCard from "@/components/PostsCard";
 import PostForm from "@/components/PostForm";
+import OnboardingModal from "@/components/OnboardingModal";
 import { BTS_ERAS, getEraByKey } from "@/lib/bts-eras";
+import { getMemberByKey } from "@/lib/bts-members";
 
 export default function Home() {
   const { user } = useAuthStore();
   const { data: profile } = useProfile(user);
   const { data: posts = [], isLoading, isError, error } = usePosts();
   const [activeEra, setActiveEra] = useState<string | null>(null);
+  const [activeMember, setActiveMember] = useState<string | null>(null);
 
   // Eras que tienen al menos un post
   const erasWithPosts = useMemo(() => {
@@ -23,16 +26,77 @@ export default function Home() {
     return BTS_ERAS.filter((e) => keys.has(e.key));
   }, [posts]);
 
+  // Miembros que tienen al menos un post etiquetado
+  const membersWithPosts = useMemo(() => {
+    const keys = new Set(posts.flatMap((p) => p.bts_members ?? []));
+    return [...keys];
+  }, [posts]);
+
   const filtered = useMemo(() => {
-    if (!activeEra) return posts;
-    return posts.filter((p) => p.era === activeEra);
-  }, [posts, activeEra]);
+    let result = posts;
+    if (activeEra) result = result.filter((p) => p.era === activeEra);
+    if (activeMember) result = result.filter((p) => p.bts_members?.includes(activeMember));
+    return result;
+  }, [posts, activeEra, activeMember]);
 
   const userEra = profile?.fav_album ?? null;
+  const userBias = profile?.bias ?? null;
 
   return (
     <>
+      {user && profile && (
+        <OnboardingModal profile={profile} userId={user} />
+      )}
       <PostForm profile={profile ?? null} />
+
+      {/* Member filter chips */}
+      {!isLoading && membersWithPosts.length > 0 && (
+        <div className="flex gap-2 flex-wrap mb-3 -mt-1">
+          <button
+            type="button"
+            onClick={() => setActiveMember(null)}
+            className="px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200"
+            style={{
+              background: !activeMember ? "var(--accent)" : "rgba(255,255,255,0.06)",
+              color: !activeMember ? "#fff" : "var(--text-muted)",
+              boxShadow: !activeMember ? "0 0 10px var(--accent-glow)" : "none",
+            }}
+          >
+            Todos
+          </button>
+
+          {membersWithPosts.map((key) => {
+            const member = getMemberByKey(key);
+            if (!member) return null;
+            const isActive = activeMember === key;
+            const isUserBias = userBias === key;
+            return (
+              <motion.button
+                key={key}
+                type="button"
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setActiveMember(isActive ? null : key)}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200"
+                style={{
+                  background: isActive ? `${member.color}22` : "rgba(255,255,255,0.06)",
+                  color: isActive ? member.color : "var(--text-muted)",
+                  border: `1px solid ${isActive ? member.color : "transparent"}`,
+                  boxShadow: isActive ? `0 0 10px ${member.color}44` : "none",
+                }}
+              >
+                <img
+                  src={member.photo}
+                  alt={member.name}
+                  className="w-4 h-4 rounded-full object-cover"
+                  style={{ outline: isActive ? `1.5px solid ${member.color}` : "none" }}
+                />
+                {isUserBias && <span>💜</span>}
+                {member.name}
+              </motion.button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Era filter chips */}
       {!isLoading && erasWithPosts.length > 0 && (
@@ -98,14 +162,26 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col items-center justify-center py-20 gap-3"
         >
-          <span className="text-5xl">{activeEra ? getEraByKey(activeEra)?.label ?? "💜" : "💜"}</span>
+          <span className="text-5xl">
+            {activeMember
+              ? getMemberByKey(activeMember)?.photo
+                ? <img src={getMemberByKey(activeMember)!.photo} alt="" className="w-12 h-12 rounded-full object-cover" />
+                : "💜"
+              : activeEra
+              ? getEraByKey(activeEra)?.label ?? "💜"
+              : "💜"}
+          </span>
           <p className="text-[color:var(--text-secondary)] text-sm">
-            {activeEra ? `No hay posts de esta era todavía` : "Aún no hay posts. ¡Sé el primero!"}
+            {activeMember
+              ? `No hay posts de ${getMemberByKey(activeMember)?.name ?? activeMember} todavía`
+              : activeEra
+              ? `No hay posts de esta era todavía`
+              : "Aún no hay posts. ¡Sé el primero!"}
           </p>
-          {activeEra && (
+          {(activeEra || activeMember) && (
             <button
               type="button"
-              onClick={() => setActiveEra(null)}
+              onClick={() => { setActiveEra(null); setActiveMember(null); }}
               className="text-xs text-[color:var(--accent)] hover:underline mt-1"
             >
               Ver todos los posts

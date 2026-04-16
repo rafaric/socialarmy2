@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Avatar from "@/components/Avatar";
 import ArmySinceBadge from "@/components/ArmySinceBadge";
 import BtsMemberSelector from "@/components/BtsMemberSelector";
@@ -23,12 +23,12 @@ interface ProfileViewProps {
   initialTab: string;
 }
 
-const tabs = [
+const BASE_TABS = [
   { key: "about",   label: "Info" },
   { key: "posts",   label: "Posteos" },
-  { key: "friends", label: "Amigos" },
   { key: "photos",  label: "Fotos" },
 ];
+const OWN_TABS = [...BASE_TABS, { key: "account", label: "Cuenta" }];
 
 export default function ProfileView({
   profile,
@@ -44,19 +44,27 @@ export default function ProfileView({
 
   const [activeTab, setActiveTab] = useState(tab);
   const [editing, setEditing] = useState(false);
+
+  // Account / password change
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
   const [about, setAbout] = useState("");
   const [coverUrl, setCoverUrl] = useState("");
   const [profileUrl, setProfileUrl] = useState("");
   const [bias, setBias] = useState<string | null>(profile.bias ?? null);
   const [biasWrecker, setBiasWrecker] = useState<string | null>(profile.bias_wrecker ?? null);
-  const [btsHusband, setBtsHusband] = useState<string | null>(profile.bts_husband ?? null);
   const [favAlbum, setFavAlbum] = useState<string>(profile.fav_album ?? "");
   const [favSong, setFavSong] = useState<string>(profile.fav_song ?? "");
 
-  const { user } = useAuthStore();
+  const { user, session } = useAuthStore();
   const queryClient = useQueryClient();
 
   const isOwn = profile.id === currentUserId;
+  const tabs = isOwn ? OWN_TABS : BASE_TABS;
 
   const { data: isFriend = false } = useQuery({
     queryKey: ["is-friend", currentUserId, profile.id],
@@ -141,12 +149,42 @@ export default function ProfileView({
       about,
       bias,
       bias_wrecker: biasWrecker,
-      bts_husband: btsHusband,
       fav_album: favAlbum || null,
       fav_song: favSong || null,
     }).eq("id", profile.id);
     queryClient.invalidateQueries({ queryKey: ["profile", profile.id] });
     setEditing(false);
+  }
+
+  async function handleChangePassword() {
+    setPasswordError(null);
+    setPasswordSuccess(false);
+    if (newPassword.length < 6) {
+      setPasswordError("La contraseña debe tener al menos 6 caracteres");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError("Las contraseñas no coinciden");
+      return;
+    }
+    setPasswordLoading(true);
+    const email = session?.user?.email ?? "";
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password: currentPassword });
+    if (signInError) {
+      setPasswordError("La contraseña actual es incorrecta");
+      setPasswordLoading(false);
+      return;
+    }
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setPasswordLoading(false);
+    if (error) {
+      setPasswordError(error.message);
+    } else {
+      setPasswordSuccess(true);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    }
   }
 
   return (
@@ -341,13 +379,6 @@ export default function ProfileView({
                 <BtsMemberSelector value={biasWrecker} onChange={() => {}} label="Bias Wrecker" readOnly />
               ) : null}
 
-              {/* Marido BTS */}
-              {editing ? (
-                <BtsMemberSelector value={btsHusband} onChange={setBtsHusband} label="Marido BTS 💍" />
-              ) : btsHusband ? (
-                <BtsMemberSelector value={btsHusband} onChange={() => {}} label="Marido BTS 💍" readOnly />
-              ) : null}
-
               {/* Álbum favorito */}
               {editing ? (
                 <div>
@@ -485,6 +516,76 @@ export default function ProfileView({
                   </div>
                 ))
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Account */}
+        {activeTab === "account" && isOwn && (
+          <div className="flex flex-col gap-3 max-w-md">
+            {/* Info */}
+            <div className="flex flex-col gap-1.5 p-4 rounded-xl" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <p className="text-[10px] text-[color:var(--text-muted)] uppercase tracking-wider mb-1">Información de cuenta</p>
+              <div>
+                <p className="text-[10px] text-[color:var(--text-muted)] uppercase tracking-wider mb-1">Nombre</p>
+                <div className="army-input px-4 py-2.5 text-sm text-[color:var(--text-primary)] rounded-xl">
+                  {profile.name}
+                </div>
+              </div>
+              <div>
+                <p className="text-[10px] text-[color:var(--text-muted)] uppercase tracking-wider mb-1">Correo electrónico</p>
+                <div className="army-input px-4 py-2.5 text-sm text-[color:var(--text-primary)] rounded-xl">
+                  {session?.user?.email ?? "—"}
+                </div>
+              </div>
+            </div>
+
+            {/* Change password */}
+            <div className="flex flex-col gap-3 p-4 rounded-xl" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <p className="text-[10px] text-[color:var(--text-muted)] uppercase tracking-wider">Cambiar contraseña</p>
+              <input
+                type="password"
+                placeholder="Contraseña actual"
+                value={currentPassword}
+                onChange={(e) => { setCurrentPassword(e.target.value); setPasswordError(null); setPasswordSuccess(false); }}
+                className="army-input w-full px-4 py-2.5 text-sm"
+              />
+              <input
+                type="password"
+                placeholder="Nueva contraseña"
+                value={newPassword}
+                onChange={(e) => { setNewPassword(e.target.value); setPasswordError(null); setPasswordSuccess(false); }}
+                className="army-input w-full px-4 py-2.5 text-sm"
+              />
+              <input
+                type="password"
+                placeholder="Confirmar nueva contraseña"
+                value={confirmPassword}
+                onChange={(e) => { setConfirmPassword(e.target.value); setPasswordError(null); setPasswordSuccess(false); }}
+                className="army-input w-full px-4 py-2.5 text-sm"
+              />
+
+              <AnimatePresence mode="wait">
+                {passwordError && (
+                  <motion.p key="err" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-red-400 text-sm px-1">
+                    {passwordError}
+                  </motion.p>
+                )}
+                {passwordSuccess && (
+                  <motion.p key="ok" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="text-emerald-400 text-sm px-1">
+                    Contraseña actualizada correctamente
+                  </motion.p>
+                )}
+              </AnimatePresence>
+
+              <button
+                type="button"
+                onClick={handleChangePassword}
+                disabled={passwordLoading || !currentPassword || !newPassword || !confirmPassword}
+                className="btn-accent w-full py-2.5 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {passwordLoading ? "Actualizando..." : "Actualizar contraseña"}
+              </button>
             </div>
           </div>
         )}

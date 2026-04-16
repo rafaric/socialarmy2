@@ -7,13 +7,17 @@ import { supabase } from "@/lib/supabase/browser";
 
 function LoginPage() {
   const router = useRouter();
-  const [isRegister, setIsRegister] = useState(false);
+  type Mode = "login" | "register" | "forgot";
+  const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+
+  const isRegister = mode === "register";
+  const isForgot = mode === "forgot";
 
   async function handleLogin() {
     setLoading(true);
@@ -43,9 +47,27 @@ function LoginPage() {
       setError(error.message);
     } else {
       setMessage("¡Registro exitoso! Revisá tu email para confirmar.");
-      setIsRegister(false);
+      setMode("login");
     }
     setLoading(false);
+  }
+
+  async function handleForgotPassword() {
+    if (!email.trim()) {
+      setError("Ingresá tu correo electrónico");
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/reset-password`,
+    });
+    setLoading(false);
+    if (error) {
+      setError(error.message);
+    } else {
+      setMessage("¡Listo! Revisá tu email para resetear la contraseña.");
+    }
   }
 
   return (
@@ -71,9 +93,9 @@ function LoginPage() {
         <div className="flex rounded-lg overflow-hidden border border-white/10 mb-8">
           <button
             type="button"
-            onClick={() => { setIsRegister(false); setError(null); setMessage(null); }}
+            onClick={() => { setMode("login"); setError(null); setMessage(null); }}
             className={`flex-1 py-2.5 text-sm font-medium transition-all duration-200 ${
-              !isRegister
+              mode === "login"
                 ? "bg-[var(--accent)] text-white shadow-[0_0_12px_var(--accent-glow)]"
                 : "text-[color:var(--text-muted)] hover:text-[color:var(--text-primary)]"
             }`}
@@ -82,9 +104,9 @@ function LoginPage() {
           </button>
           <button
             type="button"
-            onClick={() => { setIsRegister(true); setError(null); setMessage(null); }}
+            onClick={() => { setMode("register"); setError(null); setMessage(null); }}
             className={`flex-1 py-2.5 text-sm font-medium transition-all duration-200 ${
-              isRegister
+              mode === "register"
                 ? "bg-[var(--accent)] text-white shadow-[0_0_12px_var(--accent-glow)]"
                 : "text-[color:var(--text-muted)] hover:text-[color:var(--text-primary)]"
             }`}
@@ -154,13 +176,33 @@ function LoginPage() {
           <button
             type="button"
             disabled={loading}
-            onClick={isRegister ? handleRegister : handleLogin}
+            onClick={isForgot ? handleForgotPassword : isRegister ? handleRegister : handleLogin}
             className="btn-accent w-full py-3 text-sm mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading
-              ? isRegister ? "Creando cuenta..." : "Entrando..."
-              : isRegister ? "Crear cuenta" : "Entrar al Army"}
+              ? isForgot ? "Enviando..." : isRegister ? "Creando cuenta..." : "Entrando..."
+              : isForgot ? "Enviar link de recuperación" : isRegister ? "Crear cuenta" : "Entrar al Army"}
           </button>
+
+          {!isForgot && !isRegister && (
+            <button
+              type="button"
+              onClick={() => { setMode("forgot"); setError(null); setMessage(null); }}
+              className="text-center text-xs text-[color:var(--text-muted)] hover:text-[color:var(--accent)] transition-colors mt-1"
+            >
+              ¿Olvidaste tu contraseña?
+            </button>
+          )}
+
+          {isForgot && (
+            <button
+              type="button"
+              onClick={() => { setMode("login"); setError(null); setMessage(null); }}
+              className="text-center text-xs text-[color:var(--text-muted)] hover:text-[color:var(--text-primary)] transition-colors mt-1"
+            >
+              ← Volver al inicio de sesión
+            </button>
+          )}
         </div>
 
         <p className="text-center text-[color:var(--text-muted)] text-xs mt-6">

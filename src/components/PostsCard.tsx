@@ -19,10 +19,11 @@ import {
 import { toast } from "sonner";
 import { getEraByKey } from "@/lib/bts-eras";
 import { BTS_DISCOGRAPHY } from "@/lib/bts-discography";
+import { getMemberByKey } from "@/lib/bts-members";
 import { REACTIONS } from "@/types";
 import type { Post, ReactionType } from "@/types";
 
-type PostsCardProps = Omit<Post, "author">;
+type PostsCardProps = Omit<Post, "author"> & { bts_members?: string[] | null };
 
 const PostsCard = ({
   id,
@@ -32,6 +33,7 @@ const PostsCard = ({
   tagged,
   era,
   now_playing,
+  bts_members,
   profiles: authorProfile,
 }: PostsCardProps) => {
   const { session, user } = useAuthStore();
@@ -162,6 +164,30 @@ const PostsCard = ({
 
         {/* Content */}
         <p className="py-4 text-[color:var(--text-primary)] leading-relaxed">{content}</p>
+
+        {/* BTS members tagged */}
+        {bts_members && bts_members.length > 0 && (
+          <div className="flex items-center gap-2 flex-wrap pb-3">
+            {bts_members.map((key) => {
+              const member = getMemberByKey(key);
+              if (!member) return null;
+              return (
+                <div
+                  key={key}
+                  className="flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium"
+                  style={{
+                    background: `${member.color}18`,
+                    border: `1px solid ${member.color}40`,
+                    color: member.color,
+                  }}
+                >
+                  <img src={member.photo} alt={member.name} className="w-4 h-4 rounded-full object-cover object-top" />
+                  {member.name}
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* Now Playing widget */}
         {now_playing && (
