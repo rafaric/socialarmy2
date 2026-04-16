@@ -41,7 +41,8 @@ export function useRealtimeNotifications(userId: string | null) {
   useEffect(() => {
     if (!userId) return;
 
-    const channel = supabase.channel(`realtime-notifications-${userId}`);
+    const name = `realtime-notifications-${userId}-${Math.random().toString(36).slice(2)}`;
+    const channel = supabase.channel(name);
 
     channel
       .on(

@@ -128,7 +128,8 @@ export function useRealtimePosts() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const channel = supabase.channel("realtime-posts");
+    const name = `realtime-posts-${Math.random().toString(36).slice(2)}`;
+    const channel = supabase.channel(name);
 
     channel
       .on(
