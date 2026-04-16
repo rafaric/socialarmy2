@@ -41,8 +41,9 @@ export function useRealtimeNotifications(userId: string | null) {
   useEffect(() => {
     if (!userId) return;
 
-    const channel = supabase
-      .channel(`realtime-notifications-${userId}`)
+    const channel = supabase.channel(`realtime-notifications-${userId}`);
+
+    channel
       .on(
         "postgres_changes",
         {
@@ -58,7 +59,10 @@ export function useRealtimeNotifications(userId: string | null) {
       )
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      channel.unsubscribe();
+      supabase.removeChannel(channel);
+    };
   }, [userId, queryClient]);
 }
 

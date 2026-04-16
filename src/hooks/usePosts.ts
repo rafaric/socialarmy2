@@ -128,18 +128,20 @@ export function useRealtimePosts() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const channel = supabase
-      .channel("realtime-posts")
+    const channel = supabase.channel("realtime-posts");
+
+    channel
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "posts" },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["posts"] });
-        }
+        () => { queryClient.invalidateQueries({ queryKey: ["posts"] }); }
       )
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      channel.unsubscribe();
+      supabase.removeChannel(channel);
+    };
   }, [queryClient]);
 }
 
