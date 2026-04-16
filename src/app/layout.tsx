@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   description: "La red social exclusiva para el BTS Army",
 };
 
+// External icon font loaded via <link> to avoid Tailwind v4 CSS processing issues
+const UICONS_CDN = "https://cdn-uicons.flaticon.com/uicons-bold-rounded/css/uicons-bold-rounded.css";
+
 export default function RootLayout({
   children,
 }: {
@@ -14,7 +17,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body>
+      <head>
+        <link rel="stylesheet" href={UICONS_CDN} />
+      </head>
+      <body suppressHydrationWarning>
         <div className="aurora-bg" aria-hidden="true" />
         <Providers>{children}</Providers>
       </body>
