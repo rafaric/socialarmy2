@@ -1,5 +1,6 @@
 import "@/styles/globals.css";
 import { Providers } from "./providers";
+import { Toaster } from "sonner";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -23,6 +24,17 @@ export default function RootLayout({
       <body suppressHydrationWarning>
         <div className="aurora-bg" aria-hidden="true" />
         <Providers>{children}</Providers>
+        <Toaster
+          theme="dark"
+          position="bottom-center"
+          toastOptions={{
+            style: {
+              background: "var(--bg-surface)",
+              border: "1px solid var(--glass-border)",
+              color: "var(--text-primary)",
+            },
+          }}
+        />
       </body>
     </html>
   );

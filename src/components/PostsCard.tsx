@@ -16,6 +16,7 @@ import {
   useToggleSave,
   useDeletePost,
 } from "@/hooks/usePostActions";
+import { toast } from "sonner";
 import { getEraByKey } from "@/lib/bts-eras";
 import { REACTIONS } from "@/types";
 import type { Post, ReactionType } from "@/types";
@@ -63,12 +64,16 @@ const PostsCard = ({
 
   function handleToggleSave() {
     if (!user) return;
-    toggleSave.mutate({ userId: user, isSaved });
+    toggleSave.mutate(
+      { userId: user, isSaved },
+      { onSuccess: () => toast.success(isSaved ? "Post quitado de guardados" : "Post guardado 🔖") }
+    );
   }
 
   async function handleDelete() {
     await deletePost.mutateAsync();
     setDeleteConfirm(false);
+    toast.success("Post eliminado");
   }
 
   async function postComment(ev: React.FormEvent) {
