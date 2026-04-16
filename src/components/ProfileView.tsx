@@ -7,6 +7,7 @@ import Avatar from "@/components/Avatar";
 import ArmySinceBadge from "@/components/ArmySinceBadge";
 import BtsMemberSelector from "@/components/BtsMemberSelector";
 import PostsCard from "@/components/PostsCard";
+import Lightbox from "@/components/Lightbox";
 import { BTS_DISCOGRAPHY, getAlbumByKey } from "@/lib/bts-discography";
 import { supabase } from "@/lib/supabase/browser";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -58,6 +59,9 @@ export default function ProfileView({
   const [profileUrl, setProfileUrl] = useState("");
   const [avatarPreview, setAvatarPreview] = useState<{ file: File; url: string } | null>(null);
   const [avatarUploading, setAvatarUploading] = useState(false);
+  const [photoLightboxIndex, setPhotoLightboxIndex] = useState<number | null>(null);
+
+  const allPhotos: Photo[] = initialPhotos.flatMap((el) => el.photos ?? []);
   const [bias, setBias] = useState<string | null>(profile.bias ?? null);
   const [biasWrecker, setBiasWrecker] = useState<string | null>(profile.bias_wrecker ?? null);
   const [favAlbum, setFavAlbum] = useState<string>(profile.fav_album ?? "");
@@ -534,34 +538,38 @@ export default function ProfileView({
         {activeTab === "photos" && (
           <div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {initialPhotos.flatMap((el, i) =>
-                (el.photos ?? []).map((img, j) => (
-                  <div
-                    key={`${i}-${j}`}
-                    className="rounded-xl overflow-hidden aspect-square hover:opacity-80 cursor-pointer transition-opacity"
-                  >
-                    <img src={img.url} alt="" className="w-full h-full object-cover" />
-                  </div>
-                ))
-              ).length === 0 ? (
+              {allPhotos.length === 0 ? (
                 <p className="text-[color:var(--text-muted)] text-sm col-span-full text-center py-8">Sin fotos aún</p>
               ) : (
-                initialPhotos.flatMap((el, i) =>
-                  (el.photos ?? []).map((img, j) => (
-                    <div
-                      key={`${i}-${j}`}
-                      className="rounded-xl overflow-hidden aspect-square hover:opacity-80 cursor-pointer transition-opacity"
-                    >
-                      <img src={img.url} alt="" className="w-full h-full object-cover" />
-                    </div>
-                  ))
-                )
+                allPhotos.map((img, idx) => (
+                  <button
+                    key={img.id ?? idx}
+                    type="button"
+                    className="rounded-xl overflow-hidden aspect-square hover:opacity-80 cursor-zoom-in transition-opacity focus:outline-none"
+                    onClick={() => setPhotoLightboxIndex(idx)}
+                  >
+                    <img src={img.url} alt="" className="w-full h-full object-cover" />
+                  </button>
+                ))
               )}
             </div>
           </div>
         )}
 
       </div>
+
+      {/* Profile photos lightbox */}
+      <AnimatePresence>
+        {photoLightboxIndex !== null && allPhotos.length > 0 && (
+          <Lightbox
+            photos={allPhotos}
+            index={photoLightboxIndex}
+            onClose={() => setPhotoLightboxIndex(null)}
+            onPrev={() => setPhotoLightboxIndex((i) => (i! - 1 + allPhotos.length) % allPhotos.length)}
+            onNext={() => setPhotoLightboxIndex((i) => (i! + 1) % allPhotos.length)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Avatar crop preview modal */}
       <AnimatePresence>

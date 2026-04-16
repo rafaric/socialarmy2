@@ -173,6 +173,42 @@ const PostsCard = ({
           </DropdownMenu.Root>
         </div>
 
+        {/* Delete confirmation — top of card */}
+        <AnimatePresence>
+          {deleteConfirm && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="overflow-hidden"
+            >
+              <div
+                className="mt-3 flex items-center justify-between p-3 rounded-xl"
+                style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)" }}
+              >
+                <p className="text-sm text-red-400">¿Borrar este post?</p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={handleDelete}
+                    disabled={deletePost.isPending}
+                    className="text-xs px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-50"
+                  >
+                    {deletePost.isPending ? "Borrando..." : "Sí, borrar"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDeleteConfirm(false)}
+                    className="text-xs px-3 py-1.5 rounded-lg hover:bg-white/5 text-[color:var(--text-muted)] transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Content */}
         <div className="py-4">
           <p
@@ -386,37 +422,6 @@ const PostsCard = ({
           </form>
         </div>
 
-        {/* Delete confirmation */}
-        <AnimatePresence>
-          {deleteConfirm && (
-            <motion.div
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="mt-4 flex items-center justify-between p-3 rounded-xl"
-              style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)" }}
-            >
-              <p className="text-sm text-red-400">¿Borrar este post?</p>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={handleDelete}
-                  disabled={deletePost.isPending}
-                  className="text-xs px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-50"
-                >
-                  {deletePost.isPending ? "Borrando..." : "Sí, borrar"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDeleteConfirm(false)}
-                  className="text-xs px-3 py-1.5 rounded-lg hover:bg-white/5 text-[color:var(--text-muted)] transition-colors"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </Card>
     </motion.div>
   );
@@ -445,20 +450,36 @@ function PhotoGrid({ photos, imagePhotos, onImageClick }: PhotoGridProps) {
     return photo.tipo?.startsWith("image/");
   }
 
-  const containerCls = "-mx-5 md:-mx-8 overflow-hidden";
+  // Wrapper: padding horizontal, top margin, rounded container clips corner images
+  const wrapCls = "mt-3 rounded-xl overflow-hidden";
+  const gap = "gap-1.5";
 
-  // 1 photo — full width
-  if (photos.length === 1) {
-    const photo = photos[0];
+  function renderMedia(photo: import("@/types").Photo, cls = "") {
+    if (isImage(photo)) {
+      return (
+        <button type="button" className={`w-full h-full focus:outline-none ${cls}`} onClick={() => onImageClick(lightboxIdx(photo))}>
+          <img src={photo.url} alt="" className="w-full h-full object-cover cursor-zoom-in" />
+        </button>
+      );
+    }
     return (
-      <div className={containerCls}>
-        {isImage(photo) ? (
-          <button type="button" className="w-full focus:outline-none" onClick={() => onImageClick(lightboxIdx(photo))}>
-            <img src={photo.url} alt="" className="w-full max-h-[480px] object-cover cursor-zoom-in" />
+      <video autoPlay muted controls className={`w-full h-full object-cover ${cls}`}>
+        <source src={photo.url} />
+      </video>
+    );
+  }
+
+  // 1 photo — full width, rounded by wrapper
+  if (photos.length === 1) {
+    return (
+      <div className={wrapCls}>
+        {isImage(photos[0]) ? (
+          <button type="button" className="w-full focus:outline-none" onClick={() => onImageClick(lightboxIdx(photos[0]))}>
+            <img src={photos[0].url} alt="" className="w-full max-h-[480px] object-cover cursor-zoom-in" />
           </button>
         ) : (
           <video autoPlay muted controls className="w-full max-h-[480px] object-cover">
-            <source src={photo.url} />
+            <source src={photos[0].url} />
           </video>
         )}
       </div>
@@ -468,19 +489,9 @@ function PhotoGrid({ photos, imagePhotos, onImageClick }: PhotoGridProps) {
   // 2 photos — side by side
   if (photos.length === 2) {
     return (
-      <div className={`${containerCls} grid grid-cols-2 gap-0.5`}>
+      <div className={`${wrapCls} grid grid-cols-2 ${gap}`}>
         {photos.map((photo) => (
-          <div key={photo.id} className="aspect-square">
-            {isImage(photo) ? (
-              <button type="button" className="w-full h-full focus:outline-none" onClick={() => onImageClick(lightboxIdx(photo))}>
-                <img src={photo.url} alt="" className="w-full h-full object-cover cursor-zoom-in" />
-              </button>
-            ) : (
-              <video autoPlay muted controls className="w-full h-full object-cover">
-                <source src={photo.url} />
-              </video>
-            )}
-          </div>
+          <div key={photo.id} className="aspect-square">{renderMedia(photo)}</div>
         ))}
       </div>
     );
@@ -489,32 +500,10 @@ function PhotoGrid({ photos, imagePhotos, onImageClick }: PhotoGridProps) {
   // 3 photos — 1 large left + 2 stacked right
   if (photos.length === 3) {
     return (
-      <div className={`${containerCls} grid grid-cols-2 gap-0.5`} style={{ gridTemplateRows: "1fr 1fr" }}>
-        {/* Large left */}
-        <div className="row-span-2">
-          {isImage(photos[0]) ? (
-            <button type="button" className="w-full h-full focus:outline-none" onClick={() => onImageClick(lightboxIdx(photos[0]))}>
-              <img src={photos[0].url} alt="" className="w-full h-full object-cover cursor-zoom-in" style={{ minHeight: 200 }} />
-            </button>
-          ) : (
-            <video autoPlay muted controls className="w-full h-full object-cover" style={{ minHeight: 200 }}>
-              <source src={photos[0].url} />
-            </video>
-          )}
-        </div>
-        {/* 2 stacked right */}
+      <div className={`${wrapCls} grid grid-cols-2 ${gap}`} style={{ gridTemplateRows: "1fr 1fr" }}>
+        <div className="row-span-2" style={{ minHeight: 200 }}>{renderMedia(photos[0])}</div>
         {[photos[1], photos[2]].map((photo) => (
-          <div key={photo.id} className="aspect-square">
-            {isImage(photo) ? (
-              <button type="button" className="w-full h-full focus:outline-none" onClick={() => onImageClick(lightboxIdx(photo))}>
-                <img src={photo.url} alt="" className="w-full h-full object-cover cursor-zoom-in" />
-              </button>
-            ) : (
-              <video autoPlay muted controls className="w-full h-full object-cover">
-                <source src={photo.url} />
-              </video>
-            )}
-          </div>
+          <div key={photo.id} className="aspect-square">{renderMedia(photo)}</div>
         ))}
       </div>
     );
@@ -522,20 +511,12 @@ function PhotoGrid({ photos, imagePhotos, onImageClick }: PhotoGridProps) {
 
   // 4+ photos — 2x2 grid, last cell has +N overlay
   return (
-    <div className={`${containerCls} grid grid-cols-2 gap-0.5`}>
+    <div className={`${wrapCls} grid grid-cols-2 ${gap}`}>
       {visible.map((photo, i) => {
         const isLast = i === MAX_VISIBLE - 1 && overflow > 0;
         return (
           <div key={photo.id} className="aspect-square relative">
-            {isImage(photo) ? (
-              <button type="button" className="w-full h-full focus:outline-none" onClick={() => onImageClick(lightboxIdx(photo))}>
-                <img src={photo.url} alt="" className="w-full h-full object-cover cursor-zoom-in" />
-              </button>
-            ) : (
-              <video autoPlay muted controls className="w-full h-full object-cover">
-                <source src={photo.url} />
-              </video>
-            )}
+            {renderMedia(photo)}
             {isLast && (
               <button
                 type="button"
