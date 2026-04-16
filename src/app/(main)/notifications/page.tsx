@@ -1,6 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { formatDistanceToNow } from "date-fns";
+import { es } from "date-fns/locale";
 import Avatar from "@/components/Avatar";
 import Link from "next/link";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -94,15 +96,20 @@ export default function NotificationsPage() {
                   </span>
                 </div>
 
-                <p className="text-sm text-[color:var(--text-secondary)] flex-1">
-                  <Link
-                    href={`/profile/${noti.profiles?.id}`}
-                    className="font-semibold text-[color:var(--text-primary)] hover:text-[color:var(--accent)] transition-colors"
-                  >
-                    {noti.profiles?.name}
-                  </Link>{" "}
-                  {meta.text}
-                </p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-[color:var(--text-secondary)]">
+                    <Link
+                      href={`/profile/${noti.profiles?.id}`}
+                      className="font-semibold text-[color:var(--text-primary)] hover:text-[color:var(--accent)] transition-colors"
+                    >
+                      {noti.profiles?.name}
+                    </Link>{" "}
+                    {meta.text}
+                  </p>
+                  <p className="text-xs text-[color:var(--text-muted)] mt-0.5">
+                    Hace {formatDistanceToNow(new Date(noti.created_at), { locale: es })}
+                  </p>
+                </div>
               </motion.div>
             );
           })}
