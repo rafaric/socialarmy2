@@ -1,10 +1,44 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import ProfileView from "@/components/ProfileView";
+import type { Metadata } from "next";
 
 interface Props {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ tab?: string }>;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const supabase = await createClient();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("name, avatar, about")
+    .eq("id", id)
+    .single();
+
+  if (!profile) return { title: "Perfil no encontrado" };
+
+  const description = profile.about
+    ? `${profile.about.slice(0, 140)}${profile.about.length > 140 ? "..." : ""}`
+    : `Perfil de ${profile.name} en Social Army`;
+
+  return {
+    title: profile.name,
+    description,
+    openGraph: {
+      title: `${profile.name} · Social Army`,
+      description,
+      images: profile.avatar ? [{ url: profile.avatar, alt: `Avatar de ${profile.name}` }] : [],
+      type: "profile",
+    },
+    twitter: {
+      card: "summary",
+      title: `${profile.name} · Social Army`,
+      description,
+      images: profile.avatar ? [profile.avatar] : [],
+    },
+  };
 }
 
 export default async function ProfilePage({ params, searchParams }: Props) {
