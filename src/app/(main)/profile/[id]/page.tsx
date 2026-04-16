@@ -27,7 +27,7 @@ export default async function ProfilePage({ params, searchParams }: Props) {
   // Fetch posts
   const { data: posts } = await supabase
     .from("posts")
-    .select("*, profiles!posts_author_fkey(id, name, avatar)")
+    .select("id, content, created_at, author, photos, tagged, parent, era, now_playing, bts_members, profiles!posts_author_fkey(id, name, avatar)")
     .is("parent", null)
     .eq("author", id)
     .order("created_at", { ascending: false });

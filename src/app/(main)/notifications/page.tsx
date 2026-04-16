@@ -101,7 +101,7 @@ export default function NotificationsPage() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 8, height: 0 }}
                   transition={{ delay: i * 0.03, duration: 0.2 }}
-                  className="relative flex items-center gap-4 px-6 py-4 hover:bg-white/5 transition-colors group"
+                  className="relative flex items-center gap-4 px-6 py-4 transition-colors group"
                   style={!noti.read ? {
                     background: "rgba(var(--accent-rgb, 124, 77, 206), 0.06)",
                     borderLeft: "2px solid var(--accent)",
@@ -116,7 +116,7 @@ export default function NotificationsPage() {
                   )}
 
                   {/* Avatar + icon badge */}
-                  <div className="relative shrink-0">
+                  <div className="relative shrink-0 z-10">
                     <Link href={`/profile/${noti.profiles?.id}`}>
                       <Avatar url={noti.profiles?.avatar ?? null} size="md" />
                     </Link>
@@ -125,27 +125,27 @@ export default function NotificationsPage() {
                     </span>
                   </div>
 
-                  {/* Text */}
-                  <div className="flex-1 min-w-0">
+                  {/* Text — clickable toward the post if post_id exists */}
+                  <Link
+                    href={noti.post_id ? `/post/${noti.post_id}` : `/profile/${noti.profiles?.id}`}
+                    className="flex-1 min-w-0 hover:opacity-80 transition-opacity"
+                  >
                     <p className="text-sm text-[color:var(--text-secondary)]">
-                      <Link
-                        href={`/profile/${noti.profiles?.id}`}
-                        className="font-semibold text-[color:var(--text-primary)] hover:text-[color:var(--accent)] transition-colors"
-                      >
+                      <span className="font-semibold text-[color:var(--text-primary)]">
                         {noti.profiles?.name}
-                      </Link>{" "}
+                      </span>{" "}
                       {meta.text}
                     </p>
                     <p className="text-xs text-[color:var(--text-muted)] mt-0.5">
                       Hace {formatDistanceToNow(new Date(noti.created_at), { locale: es })}
                     </p>
-                  </div>
+                  </Link>
 
                   {/* Delete button */}
                   <button
                     type="button"
                     onClick={() => deleteNotification.mutate(noti.id)}
-                    className="opacity-0 group-hover:opacity-100 w-7 h-7 flex items-center justify-center rounded-lg text-[color:var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all shrink-0"
+                    className="opacity-0 group-hover:opacity-100 w-7 h-7 flex items-center justify-center rounded-lg text-[color:var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-all shrink-0 z-10"
                     aria-label="Eliminar notificación"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">

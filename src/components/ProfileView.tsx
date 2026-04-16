@@ -16,7 +16,7 @@ import type { Profile, Photo, TaggedFriend } from "@/types";
 
 interface ProfileViewProps {
   profile: Profile;
-  posts: ({ id: string; content: string; created_at: string; author: string; photos: Photo[] | null; tagged: unknown[] | null; profiles?: { id: string; name: string; avatar: string } })[];
+  posts: ({ id: string; content: string; created_at: string; author: string; photos: Photo[] | null; tagged: unknown[] | null; era?: string | null; now_playing?: string | null; bts_members?: string[] | null; profiles?: { id: string; name: string; avatar: string } | { id: string; name: string; avatar: string }[] })[];
   friends: { id: string; name: string; avatar: string }[];
   photos: { photos: Photo[] | null }[];
   currentUserId: string | null;
@@ -471,7 +471,9 @@ export default function ProfileView({
               <p className="text-[color:var(--text-muted)] text-sm text-center py-8">Sin publicaciones aún</p>
             ) : (
               initialPosts.map((post) => {
-                const authorProfile = post.profiles ?? { id: post.author, name: "Unknown", avatar: "" };
+                const authorProfile = Array.isArray(post.profiles)
+                  ? (post.profiles[0] ?? { id: post.author, name: "Unknown", avatar: "" })
+                  : (post.profiles ?? { id: post.author, name: "Unknown", avatar: "" });
                 const tagged = post.tagged as TaggedFriend[] | null;
                 return (
                   <PostsCard
@@ -481,6 +483,9 @@ export default function ProfileView({
                     created_at={post.created_at}
                     photos={post.photos}
                     tagged={tagged}
+                    era={post.era}
+                    now_playing={post.now_playing}
+                    bts_members={post.bts_members}
                     profiles={authorProfile}
                   />
                 );
