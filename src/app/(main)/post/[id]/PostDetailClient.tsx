@@ -51,6 +51,7 @@ export default function PostDetailClient({ post }: PostDetailClientProps) {
         now_playing={post.now_playing}
         bts_members={post.bts_members}
         profiles={authorProfile}
+        forceExpanded
       />
     </div>
   );

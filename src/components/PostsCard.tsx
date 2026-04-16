@@ -6,6 +6,7 @@ import { es } from "date-fns/locale";
 import Link from "next/link";
 import Avatar from "./Avatar";
 import Card from "./Card";
+import Lightbox from "./Lightbox";
 import { useAuthStore } from "@/store/useAuthStore";
 import {
   useLikes,
@@ -23,7 +24,12 @@ import { getMemberByKey } from "@/lib/bts-members";
 import { REACTIONS } from "@/types";
 import type { Post, ReactionType } from "@/types";
 
-type PostsCardProps = Omit<Post, "author"> & { bts_members?: string[] | null };
+const CONTENT_CLAMP_LINES = 4;
+
+type PostsCardProps = Omit<Post, "author"> & {
+  bts_members?: string[] | null;
+  forceExpanded?: boolean;
+};
 
 const PostsCard = ({
   id,
@@ -35,11 +41,16 @@ const PostsCard = ({
   now_playing,
   bts_members,
   profiles: authorProfile,
+  forceExpanded = false,
 }: PostsCardProps) => {
   const { session, user } = useAuthStore();
   const [commentText, setCommentText] = useState("");
   const [showReactions, setShowReactions] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  const imagePhotos = (photos ?? []).filter((p) => p.tipo === "image/jpeg" || p.tipo?.startsWith("image/"));
 
   const { data: likes = [] } = useLikes(id);
   const { data: comments = [] } = useComments(id);
@@ -163,7 +174,33 @@ const PostsCard = ({
         </div>
 
         {/* Content */}
-        <p className="py-4 text-[color:var(--text-primary)] leading-relaxed">{content}</p>
+        <div className="py-4">
+          <p
+            className="text-[color:var(--text-primary)] leading-relaxed"
+            style={
+              !forceExpanded && !expanded
+                ? {
+                    display: "-webkit-box",
+                    WebkitLineClamp: CONTENT_CLAMP_LINES,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                  }
+                : undefined
+            }
+          >
+            {content}
+          </p>
+          {!forceExpanded && content.length > 200 && (
+            <button
+              type="button"
+              onClick={() => setExpanded((v) => !v)}
+              className="mt-1 text-xs font-medium transition-colors"
+              style={{ color: "var(--accent)" }}
+            >
+              {expanded ? "Ver menos" : "Ver más"}
+            </button>
+          )}
+        </div>
 
         {/* BTS members tagged */}
         {bts_members && bts_members.length > 0 && (
@@ -235,8 +272,18 @@ const PostsCard = ({
           <div className="flex gap-3 justify-center flex-wrap rounded-lg overflow-hidden -mx-5 md:-mx-8">
             {photos.map((photo) => (
               <div key={photo.id} className="w-full">
-                {photo.tipo === "image/jpeg" && (
-                  <img src={photo.url} className="w-full max-h-[480px] object-cover" alt="" />
+                {(photo.tipo === "image/jpeg" || photo.tipo?.startsWith("image/")) && (
+                  <button
+                    type="button"
+                    className="w-full focus:outline-none"
+                    onClick={() => setLightboxIndex(imagePhotos.findIndex((p) => p.id === photo.id))}
+                  >
+                    <img
+                      src={photo.url}
+                      className="w-full max-h-[480px] object-cover cursor-zoom-in"
+                      alt=""
+                    />
+                  </button>
                 )}
                 {photo.tipo === "video/mp4" && (
                   <video autoPlay muted controls className="w-full max-h-[480px] object-cover">
@@ -247,6 +294,19 @@ const PostsCard = ({
             ))}
           </div>
         )}
+
+        {/* Lightbox */}
+        <AnimatePresence>
+          {lightboxIndex !== null && imagePhotos.length > 0 && (
+            <Lightbox
+              photos={imagePhotos}
+              index={lightboxIndex}
+              onClose={() => setLightboxIndex(null)}
+              onPrev={() => setLightboxIndex((i) => (i! - 1 + imagePhotos.length) % imagePhotos.length)}
+              onNext={() => setLightboxIndex((i) => (i! + 1) % imagePhotos.length)}
+            />
+          )}
+        </AnimatePresence>
 
         {/* Reaction counts */}
         {reactionCounts.length > 0 && (
