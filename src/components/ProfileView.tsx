@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import Avatar from "@/components/Avatar";
 import ArmySinceBadge from "@/components/ArmySinceBadge";
@@ -11,6 +11,7 @@ import { BTS_DISCOGRAPHY, getAlbumByKey } from "@/lib/bts-discography";
 import { supabase } from "@/lib/supabase/browser";
 import { useAuthStore } from "@/store/useAuthStore";
 import Link from "next/link";
+import FriendButton from "@/components/FriendButton";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Profile, Photo, TaggedFriend } from "@/types";
 
@@ -66,41 +67,6 @@ export default function ProfileView({
   const isOwn = profile.id === currentUserId;
   const tabs = isOwn ? OWN_TABS : BASE_TABS;
 
-  const { data: isFriend = false } = useQuery({
-    queryKey: ["is-friend", currentUserId, profile.id],
-    queryFn: async (): Promise<boolean> => {
-      if (!currentUserId) return false;
-      const { data } = await supabase
-        .from("friends")
-        .select("id")
-        .eq("user_id", currentUserId)
-        .eq("friend_id", profile.id);
-      return (data?.length ?? 0) > 0;
-    },
-    enabled: !!currentUserId && !isOwn,
-  });
-
-  const addFriend = useMutation({
-    mutationFn: async () => {
-      if (!currentUserId) return;
-      await supabase.from("friends").insert({ user_id: currentUserId, friend_id: profile.id });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["is-friend", currentUserId, profile.id] });
-    },
-  });
-
-  const removeFriend = useMutation({
-    mutationFn: async () => {
-      if (!currentUserId) return;
-      await supabase.from("friends").delete()
-        .eq("user_id", currentUserId)
-        .eq("friend_id", profile.id);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["is-friend", currentUserId, profile.id] });
-    },
-  });
 
   useEffect(() => { setActiveTab(tab); }, [tab]);
 
@@ -250,27 +216,7 @@ export default function ProfileView({
           />
         </div>
 
-        {!isFriend && !isOwn && (
-          <button
-            type="button"
-            onClick={() => addFriend.mutate()}
-            className="btn-accent text-sm py-2 px-4 flex items-center gap-2"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-              <path d="M6.25 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM3.25 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM19.75 7.5a.75.75 0 0 1 .75.75v2.25h2.25a.75.75 0 0 1 0 1.5h-2.25v2.25a.75.75 0 0 1-1.5 0v-2.25h-2.25a.75.75 0 0 1 0-1.5h2.25V8.25a.75.75 0 0 1 .75-.75Z" />
-            </svg>
-            Agregar amigo
-          </button>
-        )}
-
-        {isFriend && !isOwn && (
-          <span className="text-sm text-[color:var(--text-muted)] flex items-center gap-1.5">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-[color:var(--accent)]">
-              <path fillRule="evenodd" d="M19.916 4.626a.75.75 0 0 1 .208 1.04l-9 13.5a.75.75 0 0 1-1.154.114l-6-6a.75.75 0 0 1 1.06-1.06l5.353 5.353 8.493-12.74a.75.75 0 0 1 1.04-.207Z" clipRule="evenodd" />
-            </svg>
-            Amigos
-          </span>
-        )}
+        {!isOwn && <FriendButton targetId={profile.id} />}
       </div>
 
       {/* Tabs */}
@@ -491,37 +437,6 @@ export default function ProfileView({
                 );
               })
             )}
-          </div>
-        )}
-
-        {/* Friends */}
-        {activeTab === "friends" && (
-          <div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {initialFriends.length === 0 ? (
-                <p className="text-[color:var(--text-muted)] text-sm col-span-full text-center py-8">Sin amigos aún</p>
-              ) : (
-                initialFriends.map((friend) => (
-                  <div key={friend.id} className="glass-card p-4 flex flex-col items-center gap-3 hover:border-[color:var(--accent)]/30 transition-colors">
-                    {isOwn && (
-                      <button
-                        type="button"
-                        onClick={() => removeFriend.mutate()}
-                        className="self-end w-6 h-6 flex items-center justify-center rounded text-[color:var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-colors -mt-1 -mr-1"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
-                          <path fillRule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
-                        </svg>
-                      </button>
-                    )}
-                    <Link href={`/profile/${friend.id}`} className="flex flex-col items-center gap-2 hover:opacity-80 transition-opacity">
-                      <Avatar url={friend.avatar || null} size="md" ring />
-                      <p className="text-sm text-[color:var(--text-primary)] font-medium text-center">{friend.name}</p>
-                    </Link>
-                  </div>
-                ))
-              )}
-            </div>
           </div>
         )}
 

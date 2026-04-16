@@ -14,9 +14,11 @@ import {
 } from "@/hooks/useNotifications";
 
 const NOTIFICATION_LABELS: Record<string, { text: string; icon: string }> = {
-  like:       { text: "le dio 💜 a tu post",       icon: "💜" },
-  comentario: { text: "comentó tu post",            icon: "💬" },
-  post:       { text: "compartió una publicación",  icon: "📢" },
+  like:           { text: "le dio 💜 a tu post",          icon: "💜" },
+  comentario:     { text: "comentó tu post",               icon: "💬" },
+  post:           { text: "compartió una publicación",     icon: "📢" },
+  friend_request: { text: "te envió una solicitud de amistad", icon: "🤝" },
+  friend_accept:  { text: "aceptó tu solicitud de amistad",    icon: "✨" },
 };
 
 export default function NotificationsPage() {

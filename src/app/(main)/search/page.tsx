@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Avatar from "@/components/Avatar";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useFriends, useAddFriend, useRemoveFriend } from "@/hooks/useFriends";
+import FriendButton from "@/components/FriendButton";
 import { useDebounce, useSearchProfiles, useSearchPosts } from "@/hooks/useSearch";
 import { getMemberByKey } from "@/lib/bts-members";
 import { getEraByKey } from "@/lib/bts-eras";
@@ -22,11 +22,7 @@ export default function SearchPage() {
 
   const { data: profiles = [], isFetching: fetchingProfiles } = useSearchProfiles(debouncedQuery);
   const { data: posts = [], isFetching: fetchingPosts } = useSearchPosts(debouncedQuery);
-  const { data: myFriends = [] } = useFriends(user);
-  const addFriend = useAddFriend();
-  const removeFriend = useRemoveFriend();
 
-  const friendIds = new Set(myFriends.map((f) => f.id));
   const isSearching = fetchingProfiles || fetchingPosts;
   const hasQuery = debouncedQuery.length >= 2;
 
@@ -115,8 +111,6 @@ export default function SearchPage() {
                   <EmptyResults label="usuarios" query={debouncedQuery} />
                 ) : (
                   profiles.map((profile) => {
-                    const isFriend = friendIds.has(profile.id);
-                    const isMe = profile.id === user;
                     const bias = profile.bias ? getMemberByKey(profile.bias) : null;
                     return (
                       <motion.div
@@ -145,30 +139,7 @@ export default function SearchPage() {
                             </div>
                           )}
                         </div>
-                        {!isMe && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (!user) return;
-                              isFriend
-                                ? removeFriend.mutate({ userId: user, friendId: profile.id })
-                                : addFriend.mutate({ userId: user, friendId: profile.id });
-                            }}
-                            className="shrink-0 text-xs px-3 py-1.5 rounded-lg font-medium transition-all duration-200 border"
-                            style={isFriend ? {
-                              color: "var(--text-muted)",
-                              background: "rgba(255,255,255,0.05)",
-                              borderColor: "rgba(255,255,255,0.1)",
-                            } : {
-                              color: "#fff",
-                              background: "var(--accent)",
-                              borderColor: "transparent",
-                              boxShadow: "0 0 8px var(--accent-glow)",
-                            }}
-                          >
-                            {isFriend ? "Amigos" : "+ Agregar"}
-                          </button>
-                        )}
+                        <FriendButton targetId={profile.id} />
                       </motion.div>
                     );
                   })

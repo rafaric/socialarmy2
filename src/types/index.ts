@@ -61,7 +61,7 @@ export interface Comment {
   profiles: Profile;
 }
 
-export type NotificationType = "like" | "comentario" | "post";
+export type NotificationType = "like" | "comentario" | "post" | "friend_request" | "friend_accept";
 
 export interface Notification {
   id: string;
