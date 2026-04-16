@@ -26,18 +26,26 @@ const PostForm = ({ profile }: PostFormProps) => {
   const [amigos, setAmigos] = useState(false);
   const [selectedEra, setSelectedEra] = useState<string | null>(null);
   const [showEraSelector, setShowEraSelector] = useState(false);
+  const [nowPlaying, setNowPlaying] = useState("");
+  const [showNowPlaying, setShowNowPlaying] = useState(false);
 
   const isUploading = uploadPhotos.isPending;
 
   async function handlePublish() {
     if (!user) return;
-    await createPost.mutateAsync({ userId: user, content, uploads, selectedFriends, friends, era: selectedEra });
+    await createPost.mutateAsync({
+      userId: user, content, uploads, selectedFriends, friends,
+      era: selectedEra,
+      nowPlaying: nowPlaying.trim() || null,
+    });
     setShowModal(false);
     setContent("");
     setUploads([]);
     setSelectedFriends([]);
     setSelectedEra(null);
     setShowEraSelector(false);
+    setNowPlaying("");
+    setShowNowPlaying(false);
   }
 
   async function handleFileChange(ev: React.ChangeEvent<HTMLInputElement>) {
@@ -152,6 +160,44 @@ const PostForm = ({ profile }: PostFormProps) => {
                 </div>
               )}
 
+              {/* Now Playing */}
+              <AnimatePresence>
+                {showNowPlaying && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mt-3 overflow-hidden"
+                  >
+                    <div
+                      className="flex items-center gap-3 px-3 py-2 rounded-xl"
+                      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+                    >
+                      <div className="flex items-end gap-[3px] h-4 shrink-0">
+                        {[1,2,3,4].map((i) => (
+                          <motion.div key={i} className="w-[3px] rounded-full"
+                            style={{ background: "var(--accent)" }}
+                            animate={{ height: ["40%","100%","60%","90%","40%"] }}
+                            transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.15, ease: "easeInOut" }}
+                          />
+                        ))}
+                      </div>
+                      <input
+                        type="text"
+                        className="flex-1 bg-transparent text-sm text-[color:var(--text-primary)] placeholder:text-[color:var(--text-muted)] outline-none"
+                        placeholder="Artista — Canción"
+                        value={nowPlaying}
+                        onChange={(e) => setNowPlaying(e.target.value)}
+                        autoFocus
+                      />
+                      {nowPlaying && (
+                        <button type="button" onClick={() => setNowPlaying("")} className="text-[color:var(--text-muted)] hover:text-[color:var(--text-primary)] transition-colors text-xs">✕</button>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               {/* Era selector */}
               <AnimatePresence>
                 {showEraSelector && (
@@ -213,6 +259,23 @@ const PostForm = ({ profile }: PostFormProps) => {
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
                       <path d="M4.5 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM14.25 8.625a3.375 3.375 0 1 1 6.75 0 3.375 3.375 0 0 1-6.75 0ZM1.5 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM17.25 19.128l-.001.144a2.25 2.25 0 0 1-.233.96 10.088 10.088 0 0 0 5.06-1.01.75.75 0 0 0 .42-.643 4.875 4.875 0 0 0-6.957-4.611 8.586 8.586 0 0 1 1.71 5.157v.003Z" />
                     </svg>
+                  </button>
+
+                  {/* Now Playing toggle */}
+                  <button
+                    type="button"
+                    title="Now Playing"
+                    onClick={() => setShowNowPlaying(!showNowPlaying)}
+                    className={`h-9 px-3 flex items-center gap-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
+                      nowPlaying
+                        ? "text-[color:var(--accent)] bg-[color:var(--accent)]/10"
+                        : showNowPlaying
+                        ? "text-[color:var(--accent)] bg-[color:var(--accent)]/10"
+                        : "text-[color:var(--text-secondary)] hover:text-[color:var(--accent)] hover:bg-white/5"
+                    }`}
+                  >
+                    <span>🎵</span>
+                    <span className="hidden sm:inline">{nowPlaying || "Now Playing"}</span>
                   </button>
 
                   {/* Era toggle */}

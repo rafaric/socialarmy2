@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/browser";
-import type { Like, Comment } from "@/types";
+import type { Like, Comment, ReactionType } from "@/types";
 
-// ─── Likes ───────────────────────────────────────────────────────────────────
+// ─── Likes / Reactions ────────────────────────────────────────────────────────
 
 export function useLikes(postId: string) {
   return useQuery({
@@ -18,15 +18,35 @@ export function useLikes(postId: string) {
   });
 }
 
-export function useToggleLike(postId: string, authorId: string) {
+export function useToggleReaction(postId: string, authorId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ userId, alreadyLiked, likeId }: { userId: string; alreadyLiked: boolean; likeId?: string }) => {
-      if (alreadyLiked && likeId) {
-        await supabase.from("likes").delete().eq("id", likeId);
+    mutationFn: async ({
+      userId,
+      reactionType,
+      existingLike,
+    }: {
+      userId: string;
+      reactionType: ReactionType;
+      existingLike?: Like;
+    }) => {
+      if (existingLike) {
+        if (existingLike.reaction_type === reactionType) {
+          // Same reaction → toggle off
+          await supabase.from("likes").delete().eq("id", existingLike.id);
+        } else {
+          // Different reaction → switch
+          await supabase
+            .from("likes")
+            .update({ reaction_type: reactionType })
+            .eq("id", existingLike.id);
+        }
       } else {
-        await supabase.from("likes").insert({ post_id: postId, user_id: userId });
+        // New reaction
+        await supabase
+          .from("likes")
+          .insert({ post_id: postId, user_id: userId, reaction_type: reactionType });
         await supabase.from("notifications").insert({
           notification_type: "like",
           user_emisor: userId,
@@ -37,6 +57,46 @@ export function useToggleLike(postId: string, authorId: string) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["likes", postId] });
+    },
+  });
+}
+
+// Keep legacy alias so existing callers compile (PostsCard uses useToggleLike)
+export function useToggleLike(postId: string, authorId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ userId, alreadyLiked, likeId }: { userId: string; alreadyLiked: boolean; likeId?: string }) => {
+      if (alreadyLiked && likeId) {
+        await supabase.from("likes").delete().eq("id", likeId);
+      } else {
+        await supabase.from("likes").insert({ post_id: postId, user_id: userId, reaction_type: "heart" });
+        await supabase.from("notifications").insert({
+          notification_type: "like",
+          user_emisor: userId,
+          user_receptor: authorId,
+          post_id: postId,
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["likes", postId] });
+    },
+  });
+}
+
+// ─── Delete post ──────────────────────────────────────────────────────────────
+
+export function useDeletePost(postId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("posts").delete().eq("id", postId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.invalidateQueries({ queryKey: ["saved-posts"] });
     },
   });
 }
@@ -111,6 +171,7 @@ export function useToggleSave(postId: string) {
     },
     onSuccess: (_data, { userId }) => {
       queryClient.invalidateQueries({ queryKey: ["saved", postId, userId] });
+      queryClient.invalidateQueries({ queryKey: ["saved-posts"] });
     },
   });
 }

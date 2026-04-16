@@ -9,16 +9,18 @@ import Card from "./Card";
 import { useAuthStore } from "@/store/useAuthStore";
 import {
   useLikes,
-  useToggleLike,
+  useToggleReaction,
   useComments,
   useAddComment,
   useIsSaved,
   useToggleSave,
+  useDeletePost,
 } from "@/hooks/usePostActions";
 import { getEraByKey } from "@/lib/bts-eras";
-import type { Post } from "@/types";
+import { REACTIONS } from "@/types";
+import type { Post, ReactionType } from "@/types";
 
-type PostsCardProps = Omit<Post, "author"> & { era?: string | null };
+type PostsCardProps = Omit<Post, "author">;
 
 const PostsCard = ({
   id,
@@ -27,31 +29,46 @@ const PostsCard = ({
   photos,
   tagged,
   era,
+  now_playing,
   profiles: authorProfile,
 }: PostsCardProps) => {
-  const eraData = era ? getEraByKey(era) : null;
   const { session, user } = useAuthStore();
   const [commentText, setCommentText] = useState("");
+  const [showReactions, setShowReactions] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
 
   const { data: likes = [] } = useLikes(id);
   const { data: comments = [] } = useComments(id);
   const { data: isSaved = false } = useIsSaved(id, user);
 
-  const userLike = likes.find((l) => l.user_id === user);
-  const alreadyLiked = !!userLike;
-
-  const toggleLike = useToggleLike(id, authorProfile.id);
+  const myLike = likes.find((l) => l.user_id === user);
+  const toggleReaction = useToggleReaction(id, authorProfile.id);
   const addComment = useAddComment(id, authorProfile.id);
   const toggleSave = useToggleSave(id);
+  const deletePost = useDeletePost(id);
 
-  function handleLikeClick() {
+  const eraData = era ? getEraByKey(era) : null;
+
+  // Group reactions by type for display
+  const reactionCounts = REACTIONS.map((r) => ({
+    ...r,
+    count: likes.filter((l) => l.reaction_type === r.type).length,
+  })).filter((r) => r.count > 0);
+
+  function handleReaction(type: ReactionType) {
     if (!user) return;
-    toggleLike.mutate({ userId: user, alreadyLiked, likeId: userLike?.id });
+    toggleReaction.mutate({ userId: user, reactionType: type, existingLike: myLike });
+    setShowReactions(false);
   }
 
   function handleToggleSave() {
     if (!user) return;
     toggleSave.mutate({ userId: user, isSaved });
+  }
+
+  async function handleDelete() {
+    await deletePost.mutateAsync();
+    setDeleteConfirm(false);
   }
 
   async function postComment(ev: React.FormEvent) {
@@ -107,32 +124,18 @@ const PostsCard = ({
 
           <DropdownMenu.Root>
             <DropdownMenu.Trigger asChild>
-              <button
-                type="button"
-                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 focus:outline-none transition-colors"
-                aria-label="Opciones"
-              >
+              <button type="button" className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 focus:outline-none transition-colors" aria-label="Opciones">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-[color:var(--text-secondary)]">
                   <path fillRule="evenodd" d="M10.5 6a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Zm0 6a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Zm0 6a1.5 1.5 0 1 1 3 0 1.5 1.5 0 0 1-3 0Z" clipRule="evenodd" />
                 </svg>
               </button>
             </DropdownMenu.Trigger>
             <DropdownMenu.Portal>
-              <DropdownMenu.Content
-                className="z-50 min-w-[160px] glass-card rounded-lg shadow-xl py-1 text-sm"
-                sideOffset={5}
-                align="end"
-              >
-                <DropdownMenu.Item
-                  className="px-4 py-2.5 cursor-pointer text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] hover:bg-white/5 outline-none transition-colors"
-                  onSelect={handleToggleSave}
-                >
+              <DropdownMenu.Content className="z-50 min-w-[160px] glass-card rounded-lg shadow-xl py-1 text-sm" sideOffset={5} align="end">
+                <DropdownMenu.Item className="px-4 py-2.5 cursor-pointer text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] hover:bg-white/5 outline-none transition-colors" onSelect={handleToggleSave}>
                   {isSaved ? "Quitar guardado" : "Guardar post"}
                 </DropdownMenu.Item>
-                <DropdownMenu.Item
-                  className="px-4 py-2.5 cursor-pointer text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] hover:bg-white/5 outline-none transition-colors"
-                  onSelect={() => {}}
-                >
+                <DropdownMenu.Item className="px-4 py-2.5 cursor-pointer text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] hover:bg-white/5 outline-none transition-colors" onSelect={() => {}}>
                   Activar notificación
                 </DropdownMenu.Item>
                 {isOwn && (
@@ -140,7 +143,7 @@ const PostsCard = ({
                     <DropdownMenu.Separator className="h-px bg-white/10 my-1" />
                     <DropdownMenu.Item
                       className="px-4 py-2.5 cursor-pointer text-red-400 hover:bg-red-500/10 outline-none transition-colors"
-                      onSelect={() => {}}
+                      onSelect={() => setDeleteConfirm(true)}
                     >
                       Borrar post
                     </DropdownMenu.Item>
@@ -153,6 +156,31 @@ const PostsCard = ({
 
         {/* Content */}
         <p className="py-4 text-[color:var(--text-primary)] leading-relaxed">{content}</p>
+
+        {/* Now Playing widget */}
+        {now_playing && (
+          <div
+            className="flex items-center gap-3 px-4 py-3 rounded-xl mb-3"
+            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+          >
+            {/* Animated bars */}
+            <div className="flex items-end gap-[3px] h-5 shrink-0">
+              {[1, 2, 3, 4].map((i) => (
+                <motion.div
+                  key={i}
+                  className="w-[3px] rounded-full"
+                  style={{ background: "var(--accent)" }}
+                  animate={{ height: ["40%", "100%", "60%", "90%", "40%"] }}
+                  transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.15, ease: "easeInOut" }}
+                />
+              ))}
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] tracking-widest text-[color:var(--text-muted)] uppercase mb-0.5">Now Playing</p>
+              <p className="text-sm font-medium text-[color:var(--text-primary)] truncate">{now_playing}</p>
+            </div>
+          </div>
+        )}
 
         {/* Media */}
         {photos && photos.length > 0 && (
@@ -172,42 +200,65 @@ const PostsCard = ({
           </div>
         )}
 
+        {/* Reaction counts */}
+        {reactionCounts.length > 0 && (
+          <div className="flex gap-2 pt-3 flex-wrap">
+            {reactionCounts.map((r) => (
+              <span
+                key={r.type}
+                className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full"
+                style={{ background: "rgba(255,255,255,0.06)", color: "var(--text-secondary)" }}
+              >
+                <span>{r.emoji}</span>
+                <span>{r.count}</span>
+              </span>
+            ))}
+          </div>
+        )}
+
         {/* Actions */}
-        <div className="pt-4 flex gap-4 items-center border-t border-white/5 mt-2">
-          <button
-            type="button"
-            className="flex items-center gap-1.5 text-sm text-[color:var(--text-secondary)] hover:text-[color:var(--accent)] transition-colors"
-            onClick={handleLikeClick}
-          >
-            <AnimatePresence mode="wait" initial={false}>
-              {alreadyLiked ? (
-                <motion.span
-                  key="liked"
-                  initial={{ scale: 0.5, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.5, opacity: 0 }}
-                  transition={{ duration: 0.2, type: "spring", stiffness: 400 }}
-                  className="text-lg heartbeat"
-                >
-                  💜
-                </motion.span>
-              ) : (
-                <motion.span
-                  key="unliked"
-                  initial={{ scale: 0.5, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.5, opacity: 0 }}
+        <div className="pt-3 flex gap-2 items-center border-t border-white/5 mt-2 relative">
+          {/* Reaction button + popover */}
+          <div className="relative">
+            <button
+              type="button"
+              className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] hover:bg-white/5 transition-colors"
+              onClick={() => setShowReactions((v) => !v)}
+            >
+              <span className="text-base">{myLike ? REACTIONS.find(r => r.type === myLike.reaction_type)?.emoji ?? "💜" : "🤍"}</span>
+              <span>{likes.length}</span>
+            </button>
+
+            <AnimatePresence>
+              {showReactions && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.85, y: 4 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.85, y: 4 }}
                   transition={{ duration: 0.15 }}
-                  className="text-lg"
+                  className="absolute bottom-full left-0 mb-2 glass-card px-2 py-1.5 flex gap-1 z-20"
                 >
-                  🤍
-                </motion.span>
+                  {REACTIONS.map((r) => (
+                    <motion.button
+                      key={r.type}
+                      type="button"
+                      title={r.label}
+                      whileHover={{ scale: 1.3 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => handleReaction(r.type)}
+                      className={`text-xl p-1 rounded-lg transition-colors ${
+                        myLike?.reaction_type === r.type ? "bg-white/15" : "hover:bg-white/10"
+                      }`}
+                    >
+                      {r.emoji}
+                    </motion.button>
+                  ))}
+                </motion.div>
               )}
             </AnimatePresence>
-            <span>{likes.length}</span>
-          </button>
+          </div>
 
-          <button type="button" className="flex items-center gap-1.5 text-sm text-[color:var(--text-secondary)] hover:text-[color:var(--accent)] transition-colors">
+          <button type="button" className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] hover:bg-white/5 transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
               <path fillRule="evenodd" d="M4.804 21.644A6.707 6.707 0 0 0 6 21.75a6.721 6.721 0 0 0 3.583-1.029c.774.182 1.584.279 2.417.279 5.322 0 9.75-3.97 9.75-9 0-5.03-4.428-9-9.75-9s-9.75 3.97-9.75 9c0 2.409 1.025 4.587 2.674 6.192.232.226.277.428.254.543a3.73 3.73 0 0 1-.814 1.686.75.75 0 0 0 .44 1.223ZM8.25 10.875a1.125 1.125 0 1 0 0 2.25 1.125 1.125 0 0 0 0-2.25ZM10.875 12a1.125 1.125 0 1 1 2.25 0 1.125 1.125 0 0 1-2.25 0Zm4.875-1.125a1.125 1.125 0 1 0 0 2.25 1.125 1.125 0 0 0 0-2.25Z" clipRule="evenodd" />
             </svg>
@@ -219,10 +270,7 @@ const PostsCard = ({
         {comments.length > 0 && (
           <div className="mt-3 space-y-2">
             {comments.map((comment) => (
-              <div
-                key={comment.id}
-                className="flex items-start gap-3 bg-white/5 rounded-xl p-3 border border-white/5"
-              >
+              <div key={comment.id} className="flex items-start gap-3 bg-white/5 rounded-xl p-3 border border-white/5">
                 <Avatar url={comment.profiles.avatar} size="md" />
                 <div>
                   <div className="flex items-center gap-2">
@@ -252,6 +300,38 @@ const PostsCard = ({
             />
           </form>
         </div>
+
+        {/* Delete confirmation */}
+        <AnimatePresence>
+          {deleteConfirm && (
+            <motion.div
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="mt-4 flex items-center justify-between p-3 rounded-xl"
+              style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)" }}
+            >
+              <p className="text-sm text-red-400">¿Borrar este post?</p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={deletePost.isPending}
+                  className="text-xs px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors disabled:opacity-50"
+                >
+                  {deletePost.isPending ? "Borrando..." : "Sí, borrar"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDeleteConfirm(false)}
+                  className="text-xs px-3 py-1.5 rounded-lg hover:bg-white/5 text-[color:var(--text-muted)] transition-colors"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </Card>
     </motion.div>
   );

@@ -28,13 +28,24 @@ export interface Post {
   profiles: Profile;
   parent?: string | null;
   era?: string | null;
+  now_playing?: string | null;
 }
+
+export type ReactionType = "heart" | "fire" | "magic" | "cry";
 
 export interface Like {
   id: string;
   post_id: string;
   user_id: string;
+  reaction_type: ReactionType;
 }
+
+export const REACTIONS: { type: ReactionType; emoji: string; label: string }[] = [
+  { type: "heart", emoji: "💜", label: "Love" },
+  { type: "fire",  emoji: "🔥", label: "Fire" },
+  { type: "magic", emoji: "✨", label: "Magic" },
+  { type: "cry",   emoji: "😭", label: "Feels" },
+];
 
 export interface Comment {
   id: string;
