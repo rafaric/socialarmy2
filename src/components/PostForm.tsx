@@ -11,6 +11,7 @@ import { useCreatePost, useUploadPhotos } from "@/hooks/usePosts";
 import { BTS_ERAS } from "@/lib/bts-eras";
 import { BTS_DISCOGRAPHY } from "@/lib/bts-discography";
 import { BTS_MEMBERS, getMemberByKey } from "@/lib/bts-members";
+import PollBuilder, { type PollDraft } from "@/components/PollBuilder";
 import type { Profile, TaggedFriend } from "@/types";
 
 interface PostFormProps {
@@ -23,7 +24,7 @@ const PostForm = ({ profile }: PostFormProps) => {
   const createPost = useCreatePost();
   const uploadPhotos = useUploadPhotos();
 
-  type ActiveSection = "friends" | "nowplaying" | "members" | "era" | null;
+  type ActiveSection = "friends" | "nowplaying" | "members" | "era" | "poll" | null;
 
   const [showModal, setShowModal] = useState(false);
   const [content, setContent] = useState("");
@@ -34,6 +35,7 @@ const PostForm = ({ profile }: PostFormProps) => {
   const [selectedTrack, setSelectedTrack] = useState("");
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [activeSection, setActiveSection] = useState<ActiveSection>(null);
+  const [poll, setPoll] = useState<PollDraft | null>(null);
   const nowPlaying = selectedAlbum && selectedTrack ? `${selectedTrack} — ${BTS_DISCOGRAPHY.find(a => a.key === selectedAlbum)?.title}` : "";
 
   function toggleSection(section: ActiveSection) {
@@ -69,6 +71,7 @@ const PostForm = ({ profile }: PostFormProps) => {
     setSelectedTrack("");
     setSelectedMembers([]);
     setActiveSection(null);
+    setPoll(null);
   }
 
   async function handlePublish() {
@@ -81,6 +84,13 @@ const PostForm = ({ profile }: PostFormProps) => {
       era: selectedEra,
       nowPlaying: nowPlaying.trim() || null,
       btsMembers: selectedMembers,
+      poll: poll
+        ? {
+            question: poll.question,
+            options: poll.options,
+            ends_at: new Date(Date.now() + poll.duration * 86_400_000).toISOString(),
+          }
+        : null,
     });
     resetModal();
   }
@@ -375,6 +385,21 @@ const PostForm = ({ profile }: PostFormProps) => {
                 )}
               </AnimatePresence>
 
+              {/* Poll builder */}
+              <AnimatePresence>
+                {activeSection === "poll" && poll && (
+                  <motion.div
+                    key="poll"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <PollBuilder value={poll} onChange={setPoll} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               {/* Actions bar */}
               <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/10 gap-2 flex-wrap">
                 <div className="flex items-center gap-1.5 flex-wrap">
@@ -449,6 +474,29 @@ const PostForm = ({ profile }: PostFormProps) => {
                     <span className="hidden sm:inline">
                       {selectedMembers.length > 0 ? `${selectedMembers.length} miembro${selectedMembers.length > 1 ? "s" : ""}` : "Miembros"}
                     </span>
+                  </button>
+
+                  {/* Poll toggle */}
+                  <button
+                    type="button"
+                    title="Agregar encuesta"
+                    onClick={() => {
+                      if (activeSection === "poll") {
+                        setActiveSection(null);
+                        setPoll(null);
+                      } else {
+                        setActiveSection("poll");
+                        setPoll((p) => p ?? { question: "", options: ["", ""], duration: 1 });
+                      }
+                    }}
+                    className={`h-9 px-3 flex items-center gap-1.5 rounded-lg text-xs font-medium transition-all duration-200 border ${
+                      activeSection === "poll"
+                        ? "text-[color:var(--accent)] bg-[color:var(--accent)]/10 border-[color:var(--accent)]/30"
+                        : "text-[color:var(--text-primary)] bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
+                    }`}
+                  >
+                    <span>📊</span>
+                    <span>{poll ? "Encuesta activa" : "Encuesta"}</span>
                   </button>
 
                   {/* Era toggle */}

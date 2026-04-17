@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/browser";
 import { compressImage } from "@/lib/compressImage";
-import type { Post, Photo, TaggedFriend, Profile } from "@/types";
+import type { Post, Photo, TaggedFriend, Profile, Poll } from "@/types";
 import { v4 as uuidv4 } from "uuid";
 
 // Tipo que representa el resultado de la query de Supabase
@@ -18,6 +18,7 @@ interface PostWithProfile {
   era: string | null;
   now_playing: string | null;
   bts_members: string[] | null;
+  poll: Poll | null;
   profiles: { id: string; name: string; avatar: string } | { id: string; name: string; avatar: string }[] | null;
 }
 
@@ -42,6 +43,7 @@ function mapPostToType(post: PostWithProfile): Post {
     era: post.era,
     now_playing: post.now_playing,
     bts_members: post.bts_members,
+    poll: post.poll,
     profiles: authorProfile,
   };
 }
@@ -52,7 +54,7 @@ export function usePosts() {
     queryFn: async (): Promise<Post[]> => {
       const { data, error } = await supabase
         .from("posts")
-        .select("id, content, created_at, author, photos, tagged, parent, era, now_playing, bts_members, profiles!posts_author_fkey(id, name, avatar)")
+        .select("id, content, created_at, author, photos, tagged, parent, era, now_playing, bts_members, poll, profiles!posts_author_fkey(id, name, avatar)")
         .is("parent", null)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -67,7 +69,7 @@ export function useUserPosts(userId: string | null) {
     queryFn: async (): Promise<Post[]> => {
       const { data, error } = await supabase
         .from("posts")
-        .select("id, content, created_at, author, photos, tagged, parent, era, now_playing, bts_members, profiles!posts_author_fkey(id, name, avatar)")
+        .select("id, content, created_at, author, photos, tagged, parent, era, now_playing, bts_members, poll, profiles!posts_author_fkey(id, name, avatar)")
         .is("parent", null)
         .eq("author", userId!);
       if (error) throw error;
@@ -86,18 +88,19 @@ interface CreatePostInput {
   era?: string | null;
   nowPlaying?: string | null;
   btsMembers?: string[];
+  poll?: Poll | null;
 }
 
 export function useCreatePost() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ userId, content, uploads, selectedFriends, friends, era, nowPlaying, btsMembers }: CreatePostInput) => {
+    mutationFn: async ({ userId, content, uploads, selectedFriends, friends, era, nowPlaying, btsMembers, poll }: CreatePostInput) => {
       if (!content.trim()) throw new Error("El contenido no puede estar vacío");
 
       const { data, error } = await supabase
         .from("posts")
-        .insert({ author: userId, content, photos: uploads, tagged: selectedFriends, era: era ?? null, now_playing: nowPlaying ?? null, bts_members: btsMembers?.length ? btsMembers : null })
+        .insert({ author: userId, content, photos: uploads, tagged: selectedFriends, era: era ?? null, now_playing: nowPlaying ?? null, bts_members: btsMembers?.length ? btsMembers : null, poll: poll ?? null })
         .select()
         .single();
 

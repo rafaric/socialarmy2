@@ -19,6 +19,8 @@ const NOTIFICATION_LABELS: Record<string, { text: string; icon: string }> = {
   post:           { text: "compartió una publicación",     icon: "📢" },
   friend_request: { text: "te envió una solicitud de amistad", icon: "🤝" },
   friend_accept:  { text: "aceptó tu solicitud de amistad",    icon: "✨" },
+  poll_vote:      { text: "votó en tu encuesta",               icon: "📊" },
+  poll_ended:     { text: "Tu encuesta finalizó",              icon: "🏁" },
 };
 
 export default function NotificationsPage() {

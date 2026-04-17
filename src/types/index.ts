@@ -34,6 +34,7 @@ export interface Post {
   era?: string | null;
   now_playing?: string | null;
   bts_members?: string[] | null;
+  poll?: Poll | null;
 }
 
 export type ReactionType = "heart" | "fire" | "magic" | "cry";
@@ -61,7 +62,21 @@ export interface Comment {
   profiles: Profile;
 }
 
-export type NotificationType = "like" | "comentario" | "post" | "friend_request" | "friend_accept";
+export interface Poll {
+  question: string;
+  options: string[];
+  ends_at: string; // ISO datetime
+}
+
+export interface PollVote {
+  id: string;
+  post_id: string;
+  user_id: string;
+  option_index: number;
+  created_at: string;
+}
+
+export type NotificationType = "like" | "comentario" | "post" | "friend_request" | "friend_accept" | "poll_vote" | "poll_ended";
 
 export interface Notification {
   id: string;

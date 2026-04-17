@@ -21,6 +21,7 @@ import {
 import { toast } from "sonner";
 import { getEraByKey } from "@/lib/bts-eras";
 import { BTS_DISCOGRAPHY } from "@/lib/bts-discography";
+import PollDisplay from "@/components/PollDisplay";
 import { getMemberByKey } from "@/lib/bts-members";
 import { REACTIONS } from "@/types";
 import type { Post, ReactionType } from "@/types";
@@ -42,6 +43,7 @@ const PostsCard = ({
   era,
   now_playing,
   bts_members,
+  poll,
   profiles: authorProfile,
   forceExpanded = false,
 }: PostsCardProps) => {
@@ -263,6 +265,11 @@ const PostsCard = ({
               );
             })}
           </div>
+        )}
+
+        {/* Poll */}
+        {poll && (
+          <PollDisplay poll={poll} postId={id} authorId={authorProfile.id} />
         )}
 
         {/* Now Playing widget */}
