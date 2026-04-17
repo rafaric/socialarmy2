@@ -75,9 +75,9 @@ export const BTS_ERAS: BtsEra[] = [
   {
     key: "arirang",
     label: "Arirang",
-    year: 2025,
-    color: "#7c4dce",
-    bg: "rgba(124, 77, 206, 0.15)",
+    year: 2026,
+    color: "#cc2936",
+    bg: "rgba(204, 41, 54, 0.15)",
     description: "El regreso",
   },
 ];

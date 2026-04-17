@@ -3,7 +3,7 @@
 import { useTheme } from "./ThemeProvider";
 
 const ERAS = [
-  { key: "arirang", label: "Arirang",   dot: "#7c4dce" },
+  { key: "arirang", label: "Arirang",   dot: "#cc2936" },
   { key: "butter",  label: "Butter",    dot: "#f9d342" },
   { key: "mots7",   label: "MOTS:7",    dot: "#1e64c8" },
 ] as const;

@@ -129,9 +129,9 @@ export const BTS_DISCOGRAPHY: BtsAlbum[] = [
   {
     key: "arirang",
     title: "Arirang",
-    year: 2025,
-    cover: "https://upload.wikimedia.org/wikipedia/en/thumb/6/6f/BTS_Proof_album_cover_art.jpg/250px-BTS_Proof_album_cover_art.jpg",
-    tracks: ["Arirang", "Comeback", "Thunder", "Golden Hour", "Seoul Nights", "For ARMY", "Purple Dream", "Horizon", "Echo Chamber", "Homecoming"],
+    year: 2026,
+    cover: "https://upload.wikimedia.org/wikipedia/en/thumb/2/2b/BTS_-_Arirang_%28cover%29.png/250px-BTS_-_Arirang_%28cover%29.png",
+    tracks: ["Body to Body", "Hooligan", "Aliens", "FYA", "2.0", "No. 29", "SWIM", "Merry Go Round", "NORMAL", "Like Animals", "they don't know 'bout us", "One More Night", "Please", "Into the Sun"],
   },
 ];
 
