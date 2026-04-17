@@ -24,6 +24,7 @@ import { BTS_DISCOGRAPHY } from "@/lib/bts-discography";
 import { getMemberByKey } from "@/lib/bts-members";
 import { REACTIONS } from "@/types";
 import type { Post, ReactionType } from "@/types";
+import { DEMO_USER_ID } from "@/lib/constants";
 
 const CONTENT_CLAMP_LINES = 4;
 
@@ -45,6 +46,7 @@ const PostsCard = ({
   forceExpanded = false,
 }: PostsCardProps) => {
   const { session, user } = useAuthStore();
+  const isReadOnly = !user || user === DEMO_USER_ID;
   const [commentText, setCommentText] = useState("");
   const [showReactions, setShowReactions] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
@@ -349,7 +351,7 @@ const PostsCard = ({
               aria-expanded={user ? showReactions : undefined}
               aria-haspopup={user ? "true" : undefined}
               className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] hover:bg-white/5 transition-colors"
-              onClick={() => user ? setShowReactions((v) => !v) : window.location.href = "/login"}
+              onClick={() => !isReadOnly ? setShowReactions((v) => !v) : window.location.href = "/login"}
             >
               <span className="text-base" aria-hidden="true">{myLike ? REACTIONS.find(r => r.type === myLike.reaction_type)?.emoji ?? "💜" : "🤍"}</span>
               <span aria-label={`${likes.length} reacciones`}>{likes.length}</span>
@@ -423,7 +425,7 @@ const PostsCard = ({
         )}
 
         {/* Comment input */}
-        {user ? (
+        {!isReadOnly ? (
           <div className="flex mt-4 gap-3 items-center">
             <Avatar url={session?.user?.user_metadata?.avatar_url} size="sm" />
             <form onSubmit={postComment} className="flex-1">

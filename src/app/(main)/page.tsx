@@ -13,6 +13,7 @@ import PostForm from "@/components/PostForm";
 import OnboardingModal from "@/components/OnboardingModal";
 import { BTS_ERAS, getEraByKey } from "@/lib/bts-eras";
 import { getMemberByKey } from "@/lib/bts-members";
+import { DEMO_USER_ID } from "@/lib/constants";
 
 export default function Home() {
   const { user } = useAuthStore();
@@ -49,7 +50,7 @@ export default function Home() {
       {user && profile && (
         <OnboardingModal profile={profile} userId={user} />
       )}
-      {user ? (
+      {user && user !== DEMO_USER_ID ? (
         <PostForm profile={profile ?? null} />
       ) : (
         <div className="glass-card py-4 px-5 mb-5 flex items-center gap-3">
