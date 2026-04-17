@@ -58,7 +58,7 @@ function CountdownDisplay({ date, accent }: { date: string; accent: string }) {
 export default function EventsCard() {
   const nextEvent   = getNextEvent();
   const argEvent    = getArgentinaEvent();
-  const nextDate    = nextEvent?.dates.find((d) => d >= new Date().toISOString().slice(0, 10)) ?? null;
+  const nextDate    = nextEvent?.dates.find((d) => d > new Date().toISOString().slice(0, 10)) ?? null;
   const argDate     = argEvent?.dates[0] ?? null;
 
   return (

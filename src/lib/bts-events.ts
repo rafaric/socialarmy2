@@ -385,10 +385,10 @@ export function getNextEvent(from: Date = new Date()): BtsEvent | null {
   const today = from.toISOString().slice(0, 10);
   return (
     BTS_EVENTS
-      .filter((e) => e.dates.some((d) => d >= today))
+      .filter((e) => e.dates.some((d) => d > today))
       .sort((a, b) => {
-        const aNext = a.dates.find((d) => d >= today)!;
-        const bNext = b.dates.find((d) => d >= today)!;
+        const aNext = a.dates.find((d) => d > today)!;
+        const bNext = b.dates.find((d) => d > today)!;
         return aNext.localeCompare(bNext);
       })[0] ?? null
   );
