@@ -5,7 +5,7 @@
    Tailwind utilities referencing var(--...) pick up changes automatically.
    ──────────────────────────────────────────────────────────────────────── */
 :root {
-  /* Arirang era (default) */
+  /* Army BTS (default — purple) */
   --bg-deep:          #070b16;
   --bg-surface:       #0d1526;
   --glass-bg:         rgba(13, 21, 38, 0.6);
@@ -30,6 +30,32 @@
   --radius-card:      1rem;
   --shadow-card:      0 4px 32px rgba(124, 77, 206, 0.15);
   --shadow-card-hover:0 8px 48px rgba(124, 77, 206, 0.3);
+}
+
+/* Arirang era (2026) — rojo */
+:root[data-theme="arirang"] {
+  --bg-deep:          #120808;
+  --bg-surface:       #1e0e0e;
+  --glass-bg:         rgba(30, 14, 14, 0.65);
+  --glass-border:     rgba(204, 41, 54, 0.25);
+
+  --accent:           #cc2936;
+  --accent-hover:     #e53935;
+  --accent-glow:      rgba(204, 41, 54, 0.45);
+  --accent-gold:      #c9a84c;
+  --accent-gold-glow: rgba(201, 168, 76, 0.35);
+
+  --text-primary:     #fff0f0;
+  --text-secondary:   #c98a8a;
+  --text-muted:       #6b3535;
+
+  --aurora-1:         #120808;
+  --aurora-2:         #1e0a0a;
+  --aurora-3:         #180808;
+  --aurora-4:         #200c0c;
+
+  --shadow-card:      0 4px 32px rgba(204, 41, 54, 0.15);
+  --shadow-card-hover:0 8px 48px rgba(204, 41, 54, 0.3);
 }
 
 /* Butter era */

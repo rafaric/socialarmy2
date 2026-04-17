@@ -3,6 +3,7 @@
 import { useTheme } from "./ThemeProvider";
 
 const ERAS = [
+  { key: "army",    label: "Army 💜",   dot: "#7c4dce" },
   { key: "arirang", label: "Arirang",   dot: "#cc2936" },
   { key: "butter",  label: "Butter",    dot: "#f9d342" },
   { key: "mots7",   label: "MOTS:7",    dot: "#1e64c8" },
@@ -13,7 +14,7 @@ export default function EraSelector() {
 
   return (
     <div className="glass-card py-4 px-4">
-      <p className="text-[10px] tracking-[0.25em] text-[color:var(--text-muted)] uppercase mb-3">Era activa</p>
+      <p className="text-[10px] tracking-[0.25em] text-[color:var(--text-muted)] uppercase mb-3">Tema visual</p>
       <div className="flex flex-col gap-1.5">
         {ERAS.map((era) => (
           <button

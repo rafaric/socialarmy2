@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 
-type Theme = "arirang" | "butter" | "mots7";
+type Theme = "army" | "arirang" | "butter" | "mots7";
 
 interface ThemeContextValue {
   theme: Theme;
@@ -10,7 +10,7 @@ interface ThemeContextValue {
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
-  theme: "arirang",
+  theme: "army",
   setTheme: () => {},
 });
 
