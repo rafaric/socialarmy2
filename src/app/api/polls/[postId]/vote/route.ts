@@ -62,7 +62,7 @@ export async function POST(
       user_emisor: user.id,
       user_receptor: post.author,
       post_id: postId,
-    }).catch(() => {});
+    }).then(null, () => {});
   }
 
   return NextResponse.json({ ok: true });
