@@ -70,6 +70,14 @@ export default function RootLayout({
         <link rel="stylesheet" href={UICONS_CDN} />
       </head>
       <body suppressHydrationWarning>
+        {/* Skip link — visible on focus for keyboard/screen reader users */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:rounded-lg focus:text-sm focus:font-medium focus:text-white"
+          style={{ background: "var(--accent)" } as React.CSSProperties}
+        >
+          Saltar al contenido principal
+        </a>
         <div className="aurora-bg" aria-hidden="true" />
         <Providers>{children}</Providers>
         <Toaster

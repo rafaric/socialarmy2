@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import type { Photo } from "@/types";
 
 interface LightboxProps {
@@ -15,6 +16,7 @@ interface LightboxProps {
 export default function Lightbox({ photos, index, onClose, onPrev, onNext }: LightboxProps) {
   const photo = photos[index];
   const hasMultiple = photos.length > 1;
+  const trapRef = useFocusTrap<HTMLDivElement>(true);
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
@@ -30,6 +32,10 @@ export default function Lightbox({ photos, index, onClose, onPrev, onNext }: Lig
 
   return (
     <motion.div
+      ref={trapRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Imagen ${index + 1} de ${photos.length}`}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -42,9 +48,10 @@ export default function Lightbox({ photos, index, onClose, onPrev, onNext }: Lig
       <button
         type="button"
         onClick={onClose}
+        aria-label="Cerrar imagen"
         className="absolute top-4 right-4 w-9 h-9 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors z-10"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5" aria-hidden="true" focusable="false">
           <path fillRule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 0 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
         </svg>
       </button>
@@ -54,9 +61,10 @@ export default function Lightbox({ photos, index, onClose, onPrev, onNext }: Lig
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); onPrev(); }}
+          aria-label="Imagen anterior"
           className="absolute left-4 w-9 h-9 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors z-10"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5" aria-hidden="true" focusable="false">
             <path fillRule="evenodd" d="M7.72 12.53a.75.75 0 0 1 0-1.06l7.5-7.5a.75.75 0 1 1 1.06 1.06L9.31 12l6.97 6.97a.75.75 0 1 1-1.06 1.06l-7.5-7.5Z" clipRule="evenodd" />
           </svg>
         </button>
@@ -70,7 +78,7 @@ export default function Lightbox({ photos, index, onClose, onPrev, onNext }: Lig
         exit={{ opacity: 0, scale: 0.95 }}
         transition={{ duration: 0.2 }}
         src={photo.url}
-        alt=""
+        alt={`Imagen ${index + 1} de ${photos.length}`}
         className="max-h-[90vh] max-w-[90vw] object-contain rounded-xl shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       />
@@ -80,9 +88,10 @@ export default function Lightbox({ photos, index, onClose, onPrev, onNext }: Lig
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); onNext(); }}
+          aria-label="Imagen siguiente"
           className="absolute right-4 w-9 h-9 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors z-10"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5" aria-hidden="true" focusable="false">
             <path fillRule="evenodd" d="M16.28 11.47a.75.75 0 0 1 0 1.06l-7.5 7.5a.75.75 0 0 1-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 0 1 1.06-1.06l7.5 7.5Z" clipRule="evenodd" />
           </svg>
         </button>
@@ -90,10 +99,13 @@ export default function Lightbox({ photos, index, onClose, onPrev, onNext }: Lig
 
       {/* Dots */}
       {hasMultiple && (
-        <div className="absolute bottom-4 flex gap-1.5">
+        <div className="absolute bottom-4 flex gap-1.5" role="tablist" aria-label="Miniaturas de imágenes">
           {photos.map((_, i) => (
             <div
               key={i}
+              role="tab"
+              aria-selected={i === index}
+              aria-label={`Imagen ${i + 1}`}
               className="w-1.5 h-1.5 rounded-full transition-all duration-200"
               style={{ background: i === index ? "#fff" : "rgba(255,255,255,0.35)" }}
             />

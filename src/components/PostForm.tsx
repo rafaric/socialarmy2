@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import Avatar from "./Avatar";
 import FriendSelector from "./FriendSearch";
 import Link from "next/link";
@@ -39,6 +40,7 @@ const PostForm = ({ profile }: PostFormProps) => {
   }
 
   const isPublishing = createPost.isPending || uploadPhotos.isPending;
+  const modalRef = useFocusTrap<HTMLDivElement>(showModal);
 
   function handleFileChange(ev: React.ChangeEvent<HTMLInputElement>) {
     if (!ev.target.files?.length) return;
@@ -118,7 +120,11 @@ const PostForm = ({ profile }: PostFormProps) => {
             onClick={(e) => { if (e.target === e.currentTarget) resetModal(); }}
           >
             <motion.div
+              ref={modalRef}
               key="modal-panel"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Crear publicación"
               initial={{ opacity: 0, scale: 0.95, y: 16 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 8 }}
@@ -146,12 +152,15 @@ const PostForm = ({ profile }: PostFormProps) => {
               </div>
 
               {/* Textarea */}
+              <label htmlFor="post-content" className="sr-only">Contenido del post</label>
               <textarea
+                id="post-content"
                 rows={5}
                 className="army-input w-full px-4 py-3 text-sm resize-none rounded-xl"
                 placeholder="¿En qué estás pensando?"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
+                aria-required="true"
               />
 
               {/* Media preview */}

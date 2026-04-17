@@ -323,14 +323,15 @@ const PostsCard = ({
 
         {/* Reaction counts */}
         {reactionCounts.length > 0 && (
-          <div className="flex gap-2 pt-3 flex-wrap">
+          <div className="flex gap-2 pt-3 flex-wrap" aria-label="Reacciones al post">
             {reactionCounts.map((r) => (
               <span
                 key={r.type}
+                aria-label={`${r.count} ${r.label}`}
                 className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full"
                 style={{ background: "rgba(255,255,255,0.06)", color: "var(--text-secondary)" }}
               >
-                <span>{r.emoji}</span>
+                <span aria-hidden="true">{r.emoji}</span>
                 <span>{r.count}</span>
               </span>
             ))}
@@ -343,16 +344,21 @@ const PostsCard = ({
           <div className="relative">
             <button
               type="button"
+              aria-label={myLike ? `Cambiar reacción (actualmente ${REACTIONS.find(r => r.type === myLike.reaction_type)?.label ?? "reacción"})` : "Reaccionar al post"}
+              aria-expanded={showReactions}
+              aria-haspopup="true"
               className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] hover:bg-white/5 transition-colors"
               onClick={() => setShowReactions((v) => !v)}
             >
-              <span className="text-base">{myLike ? REACTIONS.find(r => r.type === myLike.reaction_type)?.emoji ?? "💜" : "🤍"}</span>
-              <span>{likes.length}</span>
+              <span className="text-base" aria-hidden="true">{myLike ? REACTIONS.find(r => r.type === myLike.reaction_type)?.emoji ?? "💜" : "🤍"}</span>
+              <span aria-label={`${likes.length} reacciones`}>{likes.length}</span>
             </button>
 
             <AnimatePresence>
               {showReactions && (
                 <motion.div
+                  role="menu"
+                  aria-label="Elegir reacción"
                   initial={{ opacity: 0, scale: 0.85, y: 4 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.85, y: 4 }}
@@ -363,7 +369,9 @@ const PostsCard = ({
                     <motion.button
                       key={r.type}
                       type="button"
-                      title={r.label}
+                      role="menuitem"
+                      aria-label={r.label}
+                      aria-pressed={myLike?.reaction_type === r.type}
                       whileHover={{ scale: 1.3 }}
                       whileTap={{ scale: 0.9 }}
                       onClick={() => handleReaction(r.type)}
@@ -379,11 +387,15 @@ const PostsCard = ({
             </AnimatePresence>
           </div>
 
-          <button type="button" className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] hover:bg-white/5 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+          <button
+            type="button"
+            aria-label={`${comments.length} comentario${comments.length !== 1 ? "s" : ""}`}
+            className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] hover:bg-white/5 transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5" aria-hidden="true" focusable="false">
               <path fillRule="evenodd" d="M4.804 21.644A6.707 6.707 0 0 0 6 21.75a6.721 6.721 0 0 0 3.583-1.029c.774.182 1.584.279 2.417.279 5.322 0 9.75-3.97 9.75-9 0-5.03-4.428-9-9.75-9s-9.75 3.97-9.75 9c0 2.409 1.025 4.587 2.674 6.192.232.226.277.428.254.543a3.73 3.73 0 0 1-.814 1.686.75.75 0 0 0 .44 1.223ZM8.25 10.875a1.125 1.125 0 1 0 0 2.25 1.125 1.125 0 0 0 0-2.25ZM10.875 12a1.125 1.125 0 1 1 2.25 0 1.125 1.125 0 0 1-2.25 0Zm4.875-1.125a1.125 1.125 0 1 0 0 2.25 1.125 1.125 0 0 0 0-2.25Z" clipRule="evenodd" />
             </svg>
-            <span>{comments.length}</span>
+            <span aria-hidden="true">{comments.length}</span>
           </button>
         </div>
 
@@ -413,11 +425,14 @@ const PostsCard = ({
         <div className="flex mt-4 gap-3 items-center">
           <Avatar url={session?.user?.user_metadata?.avatar_url} size="sm" />
           <form onSubmit={postComment} className="flex-1">
+            <label htmlFor={`comment-${id}`} className="sr-only">Escribir comentario</label>
             <input
+              id={`comment-${id}`}
               className="army-input w-full px-4 py-2.5 text-sm rounded-xl"
               placeholder="Deja un comentario..."
               value={commentText}
               onChange={(ev) => setCommentText(ev.target.value)}
+              autoComplete="off"
             />
           </form>
         </div>

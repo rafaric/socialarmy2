@@ -13,6 +13,7 @@ import { supabase } from "@/lib/supabase/browser";
 import { useAuthStore } from "@/store/useAuthStore";
 import Link from "next/link";
 import FriendButton from "@/components/FriendButton";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Profile, Photo, TaggedFriend } from "@/types";
 
@@ -60,6 +61,7 @@ export default function ProfileView({
   const [avatarPreview, setAvatarPreview] = useState<{ file: File; url: string } | null>(null);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [photoLightboxIndex, setPhotoLightboxIndex] = useState<number | null>(null);
+  const avatarModalRef = useFocusTrap<HTMLDivElement>(!!avatarPreview);
 
   const allPhotos: Photo[] = initialPhotos.flatMap((el) => el.photos ?? []);
   const [bias, setBias] = useState<string | null>(profile.bias ?? null);
@@ -194,10 +196,10 @@ export default function ProfileView({
         {isOwn && (
           <label
             htmlFor="cover"
+            aria-label="Cambiar foto de portada"
             className="absolute top-3 right-3 cursor-pointer w-8 h-8 flex items-center justify-center rounded-lg bg-black/40 hover:bg-black/60 text-white transition-colors"
-            title="Cambiar portada"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4" aria-hidden="true" focusable="false">
               <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32l8.4-8.4Z" />
               <path d="M5.25 5.25a3 3 0 0 0-3 3v10.5a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3V13.5a.75.75 0 0 0-1.5 0v5.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5V8.25a1.5 1.5 0 0 1 1.5-1.5h5.25a.75.75 0 0 0 0-1.5H5.25Z" />
             </svg>
@@ -212,10 +214,10 @@ export default function ProfileView({
             {isOwn && (
               <label
                 htmlFor="avatar"
+                aria-label="Cambiar foto de perfil"
                 className="absolute bottom-0 right-0 w-7 h-7 flex items-center justify-center rounded-full bg-[var(--accent)] cursor-pointer hover:bg-[var(--accent-hover)] transition-colors"
-                title="Cambiar foto"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 text-white" aria-hidden="true" focusable="false">
                   <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32l8.4-8.4Z" />
                 </svg>
                 <input type="file" id="avatar" className="hidden" accept="image/*" onChange={handleProfileUpload} />
@@ -244,11 +246,14 @@ export default function ProfileView({
       </div>
 
       {/* Tabs */}
-      <div className="flex border-t border-white/5 px-2">
+      <div role="tablist" aria-label="Secciones del perfil" className="flex border-t border-white/5 px-2">
         {tabs.map((t) => (
           <button
             key={t.key}
             type="button"
+            role="tab"
+            aria-selected={activeTab === t.key}
+            aria-controls={`tab-panel-${t.key}`}
             onClick={() => handleTabChange(t.key)}
             className={`relative px-4 py-3 text-sm font-medium transition-colors duration-200 ${
               activeTab === t.key
@@ -582,6 +587,10 @@ export default function ProfileView({
             style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(6px)" }}
           >
             <motion.div
+              ref={avatarModalRef}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Vista previa del avatar"
               initial={{ opacity: 0, scale: 0.92, y: 16 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.92 }}

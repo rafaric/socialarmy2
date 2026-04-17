@@ -30,18 +30,25 @@ export default function SearchPage() {
     <div>
       {/* Search input */}
       <div className="glass-card px-4 py-3 mb-5 flex items-center gap-3">
+        <label htmlFor="search-input" className="sr-only">Buscar usuarios y posts</label>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
           className="w-5 h-5 shrink-0 transition-colors"
           style={{ color: query ? "var(--accent)" : "var(--text-muted)" }}
+          aria-hidden="true"
+          focusable="false"
         >
           <path fillRule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clipRule="evenodd" />
         </svg>
         <input
+          id="search-input"
           type="search"
           placeholder="Buscar usuarios, posts..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           autoFocus
+          autoComplete="off"
+          aria-label="Buscar usuarios y posts"
+          aria-busy={isSearching}
           className="flex-1 bg-transparent text-sm text-[color:var(--text-primary)] placeholder:text-[color:var(--text-muted)] outline-none"
         />
         {isSearching && (

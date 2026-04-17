@@ -23,7 +23,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         </div>
 
         {/* Main content */}
-        <main className="flex-1 min-w-0 pb-24 md:pb-8">
+        <main id="main-content" className="flex-1 min-w-0 pb-24 md:pb-8">
           {children}
         </main>
       </div>

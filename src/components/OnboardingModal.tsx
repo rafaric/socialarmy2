@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { supabase } from "@/lib/supabase/browser";
 import { BTS_MEMBERS, getMemberByKey } from "@/lib/bts-members";
 import { BTS_DISCOGRAPHY } from "@/lib/bts-discography";
@@ -22,6 +23,7 @@ type Step = 1 | 2;
 
 export default function OnboardingModal({ profile, userId }: OnboardingModalProps) {
   const [visible, setVisible] = useState(false);
+  const trapRef = useFocusTrap<HTMLDivElement>(visible);
   const [step, setStep] = useState<Step>(1);
   const [about, setAbout] = useState("");
   const [bias, setBias] = useState<string | null>(null);
@@ -66,7 +68,11 @@ export default function OnboardingModal({ profile, userId }: OnboardingModalProp
           style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(6px)" }}
         >
           <motion.div
+            ref={trapRef}
             key="onboarding-panel"
+            role="dialog"
+            aria-modal="true"
+            aria-label={step === 1 ? "Bienvenida al Army" : "Tus favoritos BTS"}
             initial={{ opacity: 0, scale: 0.93, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.93, y: 12 }}
@@ -113,10 +119,11 @@ export default function OnboardingModal({ profile, userId }: OnboardingModalProp
                   className="flex flex-col gap-4"
                 >
                   <div>
-                    <label className="text-[10px] text-[color:var(--text-muted)] uppercase tracking-wider block mb-2">
+                    <label htmlFor="onboarding-about" className="text-[10px] text-[color:var(--text-muted)] uppercase tracking-wider block mb-2">
                       Descripción
                     </label>
                     <textarea
+                      id="onboarding-about"
                       rows={3}
                       placeholder="¿Quién sos en el Army? Contanos algo sobre vos..."
                       value={about}

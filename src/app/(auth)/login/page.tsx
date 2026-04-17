@@ -116,42 +116,71 @@ function LoginPage() {
         </div>
 
         {/* Form */}
-        <div className="flex flex-col gap-3">
+        <form
+          className="flex flex-col gap-3"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (isForgot) handleForgotPassword();
+            else if (isRegister) handleRegister();
+            else handleLogin();
+          }}
+          noValidate
+        >
           <AnimatePresence>
             {isRegister && (
-              <motion.input
-                key="name"
+              <motion.div
+                key="name-field"
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
-                type="text"
-                placeholder="Tu nombre"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="army-input w-full px-4 py-3 text-sm"
-              />
+                className="overflow-hidden"
+              >
+                <label htmlFor="login-name" className="sr-only">Tu nombre</label>
+                <input
+                  id="login-name"
+                  type="text"
+                  placeholder="Tu nombre"
+                  autoComplete="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="army-input w-full px-4 py-3 text-sm"
+                />
+              </motion.div>
             )}
           </AnimatePresence>
 
+          <label htmlFor="login-email" className="sr-only">Email</label>
           <input
+            id="login-email"
             type="email"
             placeholder="Email"
+            autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="army-input w-full px-4 py-3 text-sm"
           />
-          <input
-            type="password"
-            placeholder="Contraseña"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="army-input w-full px-4 py-3 text-sm"
-          />
+
+          {!isForgot && (
+            <>
+              <label htmlFor="login-password" className="sr-only">Contraseña</label>
+              <input
+                id="login-password"
+                type="password"
+                placeholder="Contraseña"
+                autoComplete={isRegister ? "new-password" : "current-password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="army-input w-full px-4 py-3 text-sm"
+              />
+            </>
+          )}
 
           <AnimatePresence mode="wait">
             {error && (
               <motion.p
                 key="error"
+                role="alert"
+                aria-live="assertive"
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
@@ -163,6 +192,8 @@ function LoginPage() {
             {message && (
               <motion.p
                 key="message"
+                role="status"
+                aria-live="polite"
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
@@ -174,9 +205,8 @@ function LoginPage() {
           </AnimatePresence>
 
           <button
-            type="button"
+            type="submit"
             disabled={loading}
-            onClick={isForgot ? handleForgotPassword : isRegister ? handleRegister : handleLogin}
             className="btn-accent w-full py-3 text-sm mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading
@@ -203,7 +233,7 @@ function LoginPage() {
               ← Volver al inicio de sesión
             </button>
           )}
-        </div>
+        </form>
 
         <p className="text-center text-[color:var(--text-muted)] text-xs mt-6">
           La red social exclusiva para el BTS Army 💜
