@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
@@ -8,6 +8,7 @@ import Link from "next/link";
 import Avatar from "./Avatar";
 import Card from "./Card";
 import Lightbox from "./Lightbox";
+import StickerPicker from "./StickerPicker";
 import { useAuthStore } from "@/store/useAuthStore";
 import {
   useLikes,
@@ -50,10 +51,24 @@ const PostsCard = ({
   const { session, user } = useAuthStore();
   const isReadOnly = !user || user === DEMO_USER_ID;
   const [commentText, setCommentText] = useState("");
+  const [commentSticker, setCommentSticker] = useState<string | null>(null);
+  const [showStickers, setShowStickers] = useState(false);
   const [showReactions, setShowReactions] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const stickerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showStickers) return;
+    function onOutside(e: MouseEvent) {
+      if (stickerRef.current && !stickerRef.current.contains(e.target as Node)) {
+        setShowStickers(false);
+      }
+    }
+    document.addEventListener("mousedown", onOutside);
+    return () => document.removeEventListener("mousedown", onOutside);
+  }, [showStickers]);
 
   const imagePhotos = (photos ?? []).filter((p) => p.tipo === "image/jpeg" || p.tipo?.startsWith("image/"));
 
@@ -97,9 +112,10 @@ const PostsCard = ({
 
   async function postComment(ev: React.FormEvent) {
     ev.preventDefault();
-    if (!user || !commentText.trim()) return;
-    addComment.mutate({ userId: user, content: commentText });
+    if (!user || (!commentText.trim() && !commentSticker)) return;
+    addComment.mutate({ userId: user, content: commentText, stickerUrl: commentSticker ?? undefined });
     setCommentText("");
+    setCommentSticker(null);
   }
 
   const fecha = new Date(created_at);
@@ -335,15 +351,30 @@ const PostsCard = ({
         {reactionCounts.length > 0 && (
           <div className="flex gap-2 pt-3 flex-wrap" aria-label="Reacciones al post">
             {reactionCounts.map((r) => (
-              <span
+              <motion.span
                 key={r.type}
+                layout
                 aria-label={`${r.count} ${r.label}`}
-                className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full"
-                style={{ background: "rgba(255,255,255,0.06)", color: "var(--text-secondary)" }}
+                className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full cursor-default"
+                style={{ background: myLike?.reaction_type === r.type ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.06)", color: "var(--text-secondary)" }}
               >
-                <span aria-hidden="true">{r.emoji}</span>
-                <span>{r.count}</span>
-              </span>
+                <motion.span
+                  aria-hidden="true"
+                  key={`${r.type}-${r.count}`}
+                  initial={{ scale: 1.6, rotate: -10 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                >
+                  {r.emoji}
+                </motion.span>
+                <motion.span
+                  key={r.count}
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  {r.count}
+                </motion.span>
+              </motion.span>
             ))}
           </div>
         )}
@@ -375,15 +406,18 @@ const PostsCard = ({
                   transition={{ duration: 0.15 }}
                   className="absolute bottom-full left-0 mb-2 glass-card px-2 py-1.5 flex gap-1 z-20"
                 >
-                  {REACTIONS.map((r) => (
+                  {REACTIONS.map((r, i) => (
                     <motion.button
                       key={r.type}
                       type="button"
                       role="menuitem"
                       aria-label={r.label}
                       aria-pressed={myLike?.reaction_type === r.type}
-                      whileHover={{ scale: 1.3 }}
-                      whileTap={{ scale: 0.9 }}
+                      initial={{ opacity: 0, y: 8, scale: 0.6 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{ delay: i * 0.04, type: "spring", stiffness: 350, damping: 20 }}
+                      whileHover={{ scale: 1.4, y: -4 }}
+                      whileTap={{ scale: 0.85 }}
                       onClick={() => handleReaction(r.type)}
                       className={`text-xl p-1 rounded-lg transition-colors ${
                         myLike?.reaction_type === r.type ? "bg-white/15" : "hover:bg-white/10"
@@ -415,7 +449,7 @@ const PostsCard = ({
             {comments.map((comment) => (
               <div key={comment.id} className="flex items-start gap-3 bg-white/5 rounded-xl p-3 border border-white/5">
                 <Avatar url={comment.profiles.avatar} size="md" />
-                <div>
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <Link className="text-sm font-medium text-[color:var(--text-primary)] hover:text-[color:var(--accent)] transition-colors" href={`/profile/${comment.profiles.id}`}>
                       {comment.profiles.name}
@@ -424,7 +458,26 @@ const PostsCard = ({
                       · {formatDistanceToNow(new Date(comment.created_at), { locale: es })}
                     </span>
                   </div>
-                  <p className="text-[color:var(--text-secondary)] text-sm mt-0.5">{comment.content}</p>
+                  {comment.content && (
+                    <p className="text-[color:var(--text-secondary)] text-sm mt-0.5">{comment.content}</p>
+                  )}
+                  {comment.sticker_url && (
+                    <motion.div
+                      initial={{ scale: 0.7, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 18 }}
+                      className="mt-1.5 inline-block"
+                    >
+                      <Image
+                        src={comment.sticker_url}
+                        alt="sticker"
+                        width={80}
+                        height={80}
+                        className="rounded-lg object-contain"
+                        sizes="80px"
+                      />
+                    </motion.div>
+                  )}
                 </div>
               </div>
             ))}
@@ -433,19 +486,63 @@ const PostsCard = ({
 
         {/* Comment input */}
         {!isReadOnly ? (
-          <div className="flex mt-4 gap-3 items-center">
+          <div className="flex mt-4 gap-3 items-start">
             <Avatar url={session?.user?.user_metadata?.avatar_url} size="sm" />
-            <form onSubmit={postComment} className="flex-1">
-              <label htmlFor={`comment-${id}`} className="sr-only">Escribir comentario</label>
-              <input
-                id={`comment-${id}`}
-                className="army-input w-full px-4 py-2.5 text-sm rounded-xl"
-                placeholder="Deja un comentario..."
-                value={commentText}
-                onChange={(ev) => setCommentText(ev.target.value)}
-                autoComplete="off"
-              />
-            </form>
+            <div className="flex-1">
+              {/* Sticker preview */}
+              <AnimatePresence>
+                {commentSticker && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mb-2 relative inline-block"
+                  >
+                    <Image src={commentSticker} alt="sticker" width={64} height={64} className="rounded-lg object-contain" sizes="64px" />
+                    <button
+                      type="button"
+                      onClick={() => setCommentSticker(null)}
+                      className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center leading-none"
+                    >
+                      ×
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <form onSubmit={postComment} className="flex gap-2 items-center">
+                {/* Sticker button */}
+                <div className="relative" ref={stickerRef}>
+                  <motion.button
+                    type="button"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => setShowStickers((v) => !v)}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors text-base"
+                    aria-label="Elegir sticker"
+                  >
+                    🎭
+                  </motion.button>
+                  {showStickers && user && (
+                    <StickerPicker
+                      userId={user}
+                      onSelect={(url) => setCommentSticker(url)}
+                      onClose={() => setShowStickers(false)}
+                    />
+                  )}
+                </div>
+
+                <label htmlFor={`comment-${id}`} className="sr-only">Escribir comentario</label>
+                <input
+                  id={`comment-${id}`}
+                  className="army-input flex-1 px-4 py-2.5 text-sm rounded-xl"
+                  placeholder="Deja un comentario..."
+                  value={commentText}
+                  onChange={(ev) => setCommentText(ev.target.value)}
+                  autoComplete="off"
+                />
+              </form>
+            </div>
           </div>
         ) : (
           <a

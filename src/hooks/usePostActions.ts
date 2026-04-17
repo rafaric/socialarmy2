@@ -109,10 +109,10 @@ export function useComments(postId: string) {
     queryFn: async (): Promise<Comment[]> => {
       const { data, error } = await supabase
         .from("posts")
-        .select("*, profiles!posts_author_fkey(*)")
+        .select("id, content, created_at, author, parent, sticker_url, profiles!posts_author_fkey(*)")
         .eq("parent", postId);
       if (error) throw error;
-      return (data ?? []) as Comment[];
+      return (data ?? []) as unknown as Comment[];
     },
   });
 }
@@ -121,11 +121,12 @@ export function useAddComment(postId: string, authorId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ userId, content }: { userId: string; content: string }) => {
+    mutationFn: async ({ userId, content, stickerUrl }: { userId: string; content: string; stickerUrl?: string }) => {
       const { error } = await supabase.from("posts").insert({
         content,
         author: userId,
         parent: postId,
+        sticker_url: stickerUrl ?? null,
       });
       if (error) throw error;
       await supabase.from("notifications").insert({

@@ -35,9 +35,20 @@ export interface Post {
   now_playing?: string | null;
   bts_members?: string[] | null;
   poll?: Poll | null;
+  sticker_url?: string | null;
 }
 
-export type ReactionType = "heart" | "fire" | "magic" | "cry";
+export type ReactionType =
+  | "heart"
+  | "fire"
+  | "magic"
+  | "cry"
+  | "soft"
+  | "star"
+  | "hug"
+  | "music"
+  | "mind_blown"
+  | "crown";
 
 export interface Like {
   id: string;
@@ -47,10 +58,16 @@ export interface Like {
 }
 
 export const REACTIONS: { type: ReactionType; emoji: string; label: string }[] = [
-  { type: "heart", emoji: "💜", label: "Love" },
-  { type: "fire",  emoji: "🔥", label: "Fire" },
-  { type: "magic", emoji: "✨", label: "Magic" },
-  { type: "cry",   emoji: "😭", label: "Feels" },
+  { type: "heart",      emoji: "💜", label: "Love"       },
+  { type: "fire",       emoji: "🔥", label: "Fire"       },
+  { type: "magic",      emoji: "✨", label: "Magic"      },
+  { type: "cry",        emoji: "😭", label: "Feels"      },
+  { type: "soft",       emoji: "🥹", label: "Soft"       },
+  { type: "star",       emoji: "🌟", label: "Star"       },
+  { type: "hug",        emoji: "🫶", label: "Purple you" },
+  { type: "music",      emoji: "🎵", label: "Music"      },
+  { type: "mind_blown", emoji: "🤯", label: "OMG"        },
+  { type: "crown",      emoji: "👑", label: "King/Queen" },
 ];
 
 export interface Comment {
@@ -59,7 +76,16 @@ export interface Comment {
   created_at: string;
   author: string;
   parent: string;
+  sticker_url?: string | null;
   profiles: Profile;
+}
+
+export interface Sticker {
+  id: string;
+  uploaded_by: string | null;
+  url: string;
+  name: string | null;
+  created_at: string;
 }
 
 export interface Poll {
