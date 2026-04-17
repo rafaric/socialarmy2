@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { formatDistanceToNow } from "date-fns";
@@ -254,7 +255,7 @@ const PostsCard = ({
                     color: member.color,
                   }}
                 >
-                  <img src={member.photo} alt={member.name} className="w-4 h-4 rounded-full object-cover object-top" />
+                  <Image src={member.photo} alt={member.name} width={16} height={16} className="w-4 h-4 rounded-full object-cover object-top" sizes="16px" />
                   {member.name}
                 </div>
               );
@@ -273,7 +274,7 @@ const PostsCard = ({
               const albumTitle = now_playing.split(" — ")[1];
               const album = BTS_DISCOGRAPHY.find(a => a.title === albumTitle);
               return album ? (
-                <img src={album.cover} alt={album.title} className="w-10 h-10 rounded-lg object-cover shrink-0" />
+                <Image src={album.cover} alt={album.title} width={40} height={40} className="w-10 h-10 rounded-lg object-cover shrink-0" sizes="40px" />
               ) : (
                 <div className="flex items-end gap-[3px] h-5 shrink-0">
                   {[1, 2, 3, 4].map((i) => (
@@ -469,16 +470,22 @@ function PhotoGrid({ photos, imagePhotos, onImageClick }: PhotoGridProps) {
   const wrapCls = "mt-3 rounded-xl overflow-hidden";
   const gap = "gap-1.5";
 
-  function renderMedia(photo: import("@/types").Photo, cls = "") {
+  function renderMedia(photo: import("@/types").Photo) {
     if (isImage(photo)) {
       return (
-        <button type="button" className={`w-full h-full focus:outline-none ${cls}`} onClick={() => onImageClick(lightboxIdx(photo))}>
-          <img src={photo.url} alt="" className="w-full h-full object-cover cursor-zoom-in" />
+        <button type="button" className="w-full h-full focus:outline-none" onClick={() => onImageClick(lightboxIdx(photo))}>
+          <Image
+            src={photo.url}
+            alt=""
+            fill
+            sizes="(max-width: 768px) 50vw, 33vw"
+            className="object-cover cursor-zoom-in"
+          />
         </button>
       );
     }
     return (
-      <video autoPlay muted controls className={`w-full h-full object-cover ${cls}`}>
+      <video autoPlay muted controls className="w-full h-full object-cover">
         <source src={photo.url} />
       </video>
     );
@@ -486,15 +493,24 @@ function PhotoGrid({ photos, imagePhotos, onImageClick }: PhotoGridProps) {
 
   // 1 photo — full width, rounded by wrapper
   if (photos.length === 1) {
+    const photo = photos[0];
     return (
       <div className={wrapCls}>
-        {isImage(photos[0]) ? (
-          <button type="button" className="w-full focus:outline-none" onClick={() => onImageClick(lightboxIdx(photos[0]))}>
-            <img src={photos[0].url} alt="" className="w-full max-h-[480px] object-cover cursor-zoom-in" />
+        {isImage(photo) ? (
+          <button type="button" className="w-full focus:outline-none" onClick={() => onImageClick(lightboxIdx(photo))}>
+            <div className="relative w-full" style={{ maxHeight: 480, aspectRatio: "16/9", minHeight: 200 }}>
+              <Image
+                src={photo.url}
+                alt=""
+                fill
+                sizes="(max-width: 768px) 100vw, 672px"
+                className="object-cover cursor-zoom-in"
+              />
+            </div>
           </button>
         ) : (
           <video autoPlay muted controls className="w-full max-h-[480px] object-cover">
-            <source src={photos[0].url} />
+            <source src={photo.url} />
           </video>
         )}
       </div>
@@ -506,7 +522,7 @@ function PhotoGrid({ photos, imagePhotos, onImageClick }: PhotoGridProps) {
     return (
       <div className={`${wrapCls} grid grid-cols-2 ${gap}`}>
         {photos.map((photo) => (
-          <div key={photo.id} className="aspect-square">{renderMedia(photo)}</div>
+          <div key={photo.id} className="aspect-square relative">{renderMedia(photo)}</div>
         ))}
       </div>
     );
@@ -516,9 +532,9 @@ function PhotoGrid({ photos, imagePhotos, onImageClick }: PhotoGridProps) {
   if (photos.length === 3) {
     return (
       <div className={`${wrapCls} grid grid-cols-2 ${gap}`} style={{ gridTemplateRows: "1fr 1fr" }}>
-        <div className="row-span-2" style={{ minHeight: 200 }}>{renderMedia(photos[0])}</div>
+        <div className="row-span-2 relative" style={{ minHeight: 200 }}>{renderMedia(photos[0])}</div>
         {[photos[1], photos[2]].map((photo) => (
-          <div key={photo.id} className="aspect-square">{renderMedia(photo)}</div>
+          <div key={photo.id} className="aspect-square relative">{renderMedia(photo)}</div>
         ))}
       </div>
     );

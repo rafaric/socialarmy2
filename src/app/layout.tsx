@@ -1,7 +1,15 @@
 import "@/styles/globals.css";
 import { Providers } from "./providers";
 import { Toaster } from "sonner";
+import localFont from "next/font/local";
 import type { Metadata, Viewport } from "next";
+
+const monotone = localFont({
+  src: "../../public/assets/fonts/Monoton-Regular.ttf",
+  variable: "--font-monotone",
+  display: "swap",
+  preload: true,
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://socialarmy.vercel.app"),
@@ -64,7 +72,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es" suppressHydrationWarning>
+    <html lang="es" suppressHydrationWarning className={monotone.variable}>
       <head>
         <link rel="preconnect" href="https://cdn-uicons.flaticon.com" crossOrigin="anonymous" />
         <link rel="stylesheet" href={UICONS_CDN} />

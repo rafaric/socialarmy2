@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { supabase } from "@/lib/supabase/browser";
@@ -186,7 +187,7 @@ export default function OnboardingModal({ profile, userId }: OnboardingModalProp
                                 boxShadow: isSelected ? `0 0 10px ${member.color}60` : "none",
                               }}
                             >
-                              <img src={member.photo} alt={member.name} className="w-full h-full object-cover object-top" />
+                              <Image src={member.photo} alt={member.name} width={44} height={44} className="w-full h-full object-cover object-top" sizes="44px" />
                             </div>
                             <span className="text-[10px]" style={{ color: isSelected ? member.color : "var(--text-muted)" }}>
                               {member.name}
@@ -218,15 +219,22 @@ export default function OnboardingModal({ profile, userId }: OnboardingModalProp
                     <div className="flex items-center gap-2">
                       <AnimatePresence>
                         {favAlbum && (
-                          <motion.img
+                          <motion.div
                             key={favAlbum}
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.8 }}
-                            src={BTS_DISCOGRAPHY.find(a => a.key === favAlbum)?.cover}
-                            alt=""
-                            className="w-10 h-10 rounded-lg object-cover shrink-0"
-                          />
+                            className="shrink-0"
+                          >
+                            <Image
+                              src={BTS_DISCOGRAPHY.find(a => a.key === favAlbum)?.cover ?? ""}
+                              alt={`Portada de ${BTS_DISCOGRAPHY.find(a => a.key === favAlbum)?.title ?? "álbum"}`}
+                              width={40}
+                              height={40}
+                              className="w-10 h-10 rounded-lg object-cover"
+                              sizes="40px"
+                            />
+                          </motion.div>
                         )}
                       </AnimatePresence>
                       <select

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { BTS_MEMBERS, getMemberByKey } from "@/lib/bts-members";
 
@@ -21,7 +22,7 @@ export default function BtsMemberSelector({ value, onChange, label, readOnly = f
           className="w-10 h-10 rounded-full overflow-hidden shrink-0"
           style={{ outline: `2px solid ${selected.color}`, outlineOffset: "2px", boxShadow: `0 0 8px ${selected.color}60` }}
         >
-          <img src={selected.photo} alt={selected.name} className="w-full h-full object-cover object-top" />
+          <Image src={selected.photo} alt={selected.name} width={40} height={40} className="w-full h-full object-cover object-top" sizes="40px" />
         </div>
         <div>
           <p className="text-[10px] text-[color:var(--text-muted)] uppercase tracking-wider">{label}</p>
@@ -55,7 +56,7 @@ export default function BtsMemberSelector({ value, onChange, label, readOnly = f
                   outlineOffset: "2px",
                 }}
               >
-                <img src={member.photo} alt={member.name} className="w-full h-full object-cover object-top" />
+                <Image src={member.photo} alt={member.name} width={48} height={48} className="w-full h-full object-cover object-top" sizes="48px" />
               </div>
               <span
                 className="text-[10px] font-medium transition-colors"

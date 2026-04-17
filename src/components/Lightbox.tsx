@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 import type { Photo } from "@/types";
@@ -71,17 +72,26 @@ export default function Lightbox({ photos, index, onClose, onPrev, onNext }: Lig
       )}
 
       {/* Image */}
-      <motion.img
+      <motion.div
         key={photo.id}
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
         transition={{ duration: 0.2 }}
-        src={photo.url}
-        alt={`Imagen ${index + 1} de ${photos.length}`}
-        className="max-h-[90vh] max-w-[90vw] object-contain rounded-xl shadow-2xl"
+        className="max-h-[90vh] max-w-[90vw]"
         onClick={(e) => e.stopPropagation()}
-      />
+      >
+        <Image
+          src={photo.url}
+          alt={`Imagen ${index + 1} de ${photos.length}`}
+          width={1280}
+          height={960}
+          className="max-h-[90vh] max-w-[90vw] w-auto h-auto object-contain rounded-xl shadow-2xl"
+          style={{ width: "auto", height: "auto" }}
+          sizes="90vw"
+          priority
+        />
+      </motion.div>
 
       {/* Next */}
       {hasMultiple && (

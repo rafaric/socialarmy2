@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 import Avatar from "./Avatar";
@@ -249,10 +250,13 @@ const PostForm = ({ profile }: PostFormProps) => {
                       {/* Album select con cover preview */}
                       <div className="flex items-center gap-2">
                         {selectedAlbum && (
-                          <img
-                            src={BTS_DISCOGRAPHY.find(a => a.key === selectedAlbum)?.cover}
+                          <Image
+                            src={BTS_DISCOGRAPHY.find(a => a.key === selectedAlbum)?.cover ?? ""}
                             alt=""
+                            width={40}
+                            height={40}
                             className="w-10 h-10 rounded-lg object-cover shrink-0"
+                            sizes="40px"
                           />
                         )}
                         <select
@@ -357,7 +361,7 @@ const PostForm = ({ profile }: PostFormProps) => {
                                   boxShadow: isSelected ? `0 0 10px ${member.color}60` : "none",
                                 }}
                               >
-                                <img src={member.photo} alt={member.name} className="w-full h-full object-cover object-top" />
+                                <Image src={member.photo} alt={member.name} width={44} height={44} className="w-full h-full object-cover object-top" sizes="44px" />
                               </div>
                               <span className="text-[10px]" style={{ color: isSelected ? member.color : "var(--text-muted)" }}>
                                 {member.name}
@@ -435,7 +439,7 @@ const PostForm = ({ profile }: PostFormProps) => {
                         {selectedMembers.slice(0, 3).map((key) => {
                           const m = getMemberByKey(key);
                           return m ? (
-                            <img key={key} src={m.photo} alt={m.name} className="w-5 h-5 rounded-full object-cover object-top ring-1 ring-[var(--bg-surface)]" />
+                            <Image key={key} src={m.photo} alt={m.name} width={20} height={20} className="w-5 h-5 rounded-full object-cover object-top ring-1 ring-[var(--bg-surface)]" sizes="20px" />
                           ) : null;
                         })}
                       </div>

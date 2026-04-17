@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import Avatar from "@/components/Avatar";
@@ -360,10 +361,13 @@ export default function ProfileView({
                   <p className="text-[10px] text-[color:var(--text-muted)] uppercase tracking-wider mb-2">Álbum favorito</p>
                   <div className="flex items-center gap-2">
                     {favAlbum && (
-                      <img
-                        src={getAlbumByKey(favAlbum)?.cover}
+                      <Image
+                        src={getAlbumByKey(favAlbum)?.cover ?? ""}
                         alt=""
+                        width={40}
+                        height={40}
                         className="w-10 h-10 rounded-lg object-cover shrink-0"
+                        sizes="40px"
                       />
                     )}
                     <select
@@ -380,11 +384,14 @@ export default function ProfileView({
                 </div>
               ) : favAlbum ? (
                 <div className="flex items-center gap-3">
-                  <img
-                    src={getAlbumByKey(favAlbum)?.cover}
+                  <Image
+                    src={getAlbumByKey(favAlbum)?.cover ?? ""}
                     alt=""
+                    width={48}
+                    height={48}
                     className="w-12 h-12 rounded-lg object-cover shrink-0"
                     style={{ boxShadow: "0 4px 12px rgba(0,0,0,0.4)" }}
+                    sizes="48px"
                   />
                   <div>
                     <p className="text-[10px] text-[color:var(--text-muted)] uppercase tracking-wider">Álbum favorito</p>
@@ -400,10 +407,13 @@ export default function ProfileView({
                   <p className="text-[10px] text-[color:var(--text-muted)] uppercase tracking-wider mb-2">Canción favorita</p>
                   <div className="flex items-center gap-2">
                     {favAlbum && (
-                      <img
-                        src={getAlbumByKey(favAlbum)?.cover}
+                      <Image
+                        src={getAlbumByKey(favAlbum)?.cover ?? ""}
                         alt=""
+                        width={40}
+                        height={40}
                         className="w-10 h-10 rounded-lg object-cover shrink-0 opacity-60"
+                        sizes="40px"
                       />
                     )}
                     <select
@@ -422,10 +432,13 @@ export default function ProfileView({
               ) : favSong ? (
                 <div className="flex items-center gap-3">
                   {favAlbum && (
-                    <img
-                      src={getAlbumByKey(favAlbum)?.cover}
+                    <Image
+                      src={getAlbumByKey(favAlbum)?.cover ?? ""}
                       alt=""
+                      width={40}
+                      height={40}
                       className="w-10 h-10 rounded-lg object-cover shrink-0 opacity-80"
+                      sizes="40px"
                     />
                   )}
                   <div>
@@ -550,10 +563,10 @@ export default function ProfileView({
                   <button
                     key={img.id ?? idx}
                     type="button"
-                    className="rounded-xl overflow-hidden aspect-square hover:opacity-80 cursor-zoom-in transition-opacity focus:outline-none"
+                    className="relative rounded-xl overflow-hidden aspect-square hover:opacity-80 cursor-zoom-in transition-opacity focus:outline-none"
                     onClick={() => setPhotoLightboxIndex(idx)}
                   >
-                    <img src={img.url} alt="" className="w-full h-full object-cover" />
+                    <Image src={img.url} alt="" fill className="object-cover" sizes="(max-width: 768px) 50vw, 33vw" />
                   </button>
                 ))
               )}

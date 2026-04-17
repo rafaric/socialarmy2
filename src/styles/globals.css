@@ -72,7 +72,7 @@
 
 /* ── Tailwind theme extensions ─────────────────────────────────────────── */
 @theme {
-  --font-monotone: "monotone", serif;
+  --font-monotone: var(--font-monotone, "Monoton", serif);
 
   --color-army-bg:        var(--bg-deep);
   --color-army-surface:   var(--bg-surface);
@@ -83,10 +83,7 @@
   --color-army-secondary: var(--text-secondary);
 }
 
-@font-face {
-  font-family: "monotone";
-  src: url("../../public/assets/fonts/Monoton-Regular.ttf");
-}
+/* Font loaded via next/font/local in layout.tsx */
 
 /* ── Global base ──────────────────────────────────────────────────────── */
 html {

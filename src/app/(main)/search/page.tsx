@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Avatar from "@/components/Avatar";
@@ -137,8 +138,9 @@ export default function SearchPage() {
                           </Link>
                           {bias && (
                             <div className="flex items-center gap-1.5 mt-0.5">
-                              <img src={bias.photo} alt={bias.name}
+                              <Image src={bias.photo} alt={bias.name} width={14} height={14}
                                 className="w-3.5 h-3.5 rounded-full object-cover object-top"
+                                sizes="14px"
                               />
                               <span className="text-xs" style={{ color: bias.color }}>
                                 {bias.name}
@@ -206,7 +208,7 @@ export default function SearchPage() {
                                   <span key={key} className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full"
                                     style={{ background: `${m.color}18`, color: m.color, border: `1px solid ${m.color}40` }}
                                   >
-                                    <img src={m.photo} alt={m.name} className="w-3 h-3 rounded-full object-cover object-top" />
+                                    <Image src={m.photo} alt={m.name} width={12} height={12} className="w-3 h-3 rounded-full object-cover object-top" sizes="12px" />
                                     {m.name}
                                   </span>
                                 );

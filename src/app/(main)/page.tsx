@@ -3,6 +3,7 @@
 export const dynamic = "force-dynamic";
 
 import { useState, useMemo } from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useProfile } from "@/hooks/useProfile";
@@ -85,11 +86,14 @@ export default function Home() {
                   boxShadow: isActive ? `0 0 10px ${member.color}44` : "none",
                 }}
               >
-                <img
+                <Image
                   src={member.photo}
                   alt={member.name}
+                  width={16}
+                  height={16}
                   className="w-4 h-4 rounded-full object-cover"
                   style={{ outline: isActive ? `1.5px solid ${member.color}` : "none" }}
+                  sizes="16px"
                 />
                 {isUserBias && <span>💜</span>}
                 {member.name}
@@ -166,7 +170,7 @@ export default function Home() {
           <span className="text-5xl">
             {activeMember
               ? getMemberByKey(activeMember)?.photo
-                ? <img src={getMemberByKey(activeMember)!.photo} alt="" className="w-12 h-12 rounded-full object-cover" />
+                ? <Image src={getMemberByKey(activeMember)!.photo} alt="" width={48} height={48} className="w-12 h-12 rounded-full object-cover" sizes="48px" />
                 : "💜"
               : activeEra
               ? getEraByKey(activeEra)?.label ?? "💜"
