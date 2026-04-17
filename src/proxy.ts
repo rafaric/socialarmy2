@@ -33,16 +33,23 @@ export async function proxy(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
 
-  // Rutas públicas
-  const isPublic = request.nextUrl.pathname.startsWith("/login");
+  const { pathname } = request.nextUrl;
+
+  // Rutas siempre accesibles sin sesión
+  const isAuthPage = pathname.startsWith("/login");
+  const isPublicPage =
+    pathname === "/" ||
+    pathname === "/search" ||
+    pathname.startsWith("/profile/") ||
+    pathname.startsWith("/post/");
 
   // Sin auth + ruta protegida → login
-  if (!user && !isPublic) {
+  if (!user && !isAuthPage && !isPublicPage) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
   // Con auth + /login → home
-  if (user && isPublic) {
+  if (user && isAuthPage) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 

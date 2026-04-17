@@ -346,10 +346,10 @@ const PostsCard = ({
             <button
               type="button"
               aria-label={myLike ? `Cambiar reacción (actualmente ${REACTIONS.find(r => r.type === myLike.reaction_type)?.label ?? "reacción"})` : "Reaccionar al post"}
-              aria-expanded={showReactions}
-              aria-haspopup="true"
+              aria-expanded={user ? showReactions : undefined}
+              aria-haspopup={user ? "true" : undefined}
               className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] hover:bg-white/5 transition-colors"
-              onClick={() => setShowReactions((v) => !v)}
+              onClick={() => user ? setShowReactions((v) => !v) : window.location.href = "/login"}
             >
               <span className="text-base" aria-hidden="true">{myLike ? REACTIONS.find(r => r.type === myLike.reaction_type)?.emoji ?? "💜" : "🤍"}</span>
               <span aria-label={`${likes.length} reacciones`}>{likes.length}</span>
@@ -423,20 +423,29 @@ const PostsCard = ({
         )}
 
         {/* Comment input */}
-        <div className="flex mt-4 gap-3 items-center">
-          <Avatar url={session?.user?.user_metadata?.avatar_url} size="sm" />
-          <form onSubmit={postComment} className="flex-1">
-            <label htmlFor={`comment-${id}`} className="sr-only">Escribir comentario</label>
-            <input
-              id={`comment-${id}`}
-              className="army-input w-full px-4 py-2.5 text-sm rounded-xl"
-              placeholder="Deja un comentario..."
-              value={commentText}
-              onChange={(ev) => setCommentText(ev.target.value)}
-              autoComplete="off"
-            />
-          </form>
-        </div>
+        {user ? (
+          <div className="flex mt-4 gap-3 items-center">
+            <Avatar url={session?.user?.user_metadata?.avatar_url} size="sm" />
+            <form onSubmit={postComment} className="flex-1">
+              <label htmlFor={`comment-${id}`} className="sr-only">Escribir comentario</label>
+              <input
+                id={`comment-${id}`}
+                className="army-input w-full px-4 py-2.5 text-sm rounded-xl"
+                placeholder="Deja un comentario..."
+                value={commentText}
+                onChange={(ev) => setCommentText(ev.target.value)}
+                autoComplete="off"
+              />
+            </form>
+          </div>
+        ) : (
+          <a
+            href="/login"
+            className="block mt-4 text-center text-xs text-[color:var(--text-muted)] hover:text-[color:var(--accent)] transition-colors py-2"
+          >
+            Iniciá sesión para comentar 💜
+          </a>
+        )}
 
       </Card>
     </motion.div>

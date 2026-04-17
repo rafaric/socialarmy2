@@ -14,6 +14,7 @@ function LoginPage() {
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
   const isRegister = mode === "register";
@@ -50,6 +51,21 @@ function LoginPage() {
       setMode("login");
     }
     setLoading(false);
+  }
+
+  async function handleDemoLogin() {
+    setDemoLoading(true);
+    setError(null);
+    const { error } = await supabase.auth.signInWithPassword({
+      email: "demo@socialarmy.app",
+      password: "Demo1234!",
+    });
+    if (error) {
+      setError("No se pudo iniciar la sesión demo. Intentá de nuevo.");
+    } else {
+      router.push("/");
+    }
+    setDemoLoading(false);
   }
 
   async function handleForgotPassword() {
@@ -235,7 +251,29 @@ function LoginPage() {
           )}
         </form>
 
-        <p className="text-center text-[color:var(--text-muted)] text-xs mt-6">
+        {/* Divisor */}
+        <div className="flex items-center gap-3 mt-6">
+          <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.08)" }} />
+          <span className="text-xs text-[color:var(--text-muted)]">o</span>
+          <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.08)" }} />
+        </div>
+
+        {/* Demo button */}
+        <button
+          type="button"
+          onClick={handleDemoLogin}
+          disabled={demoLoading}
+          className="w-full mt-4 py-3 text-sm rounded-xl font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{
+            background: "rgba(255,255,255,0.05)",
+            border: "1px solid rgba(255,255,255,0.12)",
+            color: "var(--text-secondary)",
+          }}
+        >
+          {demoLoading ? "Entrando..." : "👀 Explorar como invitado"}
+        </button>
+
+        <p className="text-center text-[color:var(--text-muted)] text-xs mt-4">
           La red social exclusiva para el BTS Army 💜
         </p>
       </motion.div>

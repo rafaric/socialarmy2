@@ -49,7 +49,23 @@ export default function Home() {
       {user && profile && (
         <OnboardingModal profile={profile} userId={user} />
       )}
-      <PostForm profile={profile ?? null} />
+      {user ? (
+        <PostForm profile={profile ?? null} />
+      ) : (
+        <div className="glass-card py-4 px-5 mb-5 flex items-center gap-3">
+          <div className="flex-1">
+            <p className="text-sm text-[color:var(--text-muted)]">
+              Iniciá sesión para publicar y participar en el Army 💜
+            </p>
+          </div>
+          <a
+            href="/login"
+            className="btn-accent text-sm py-2 px-4 shrink-0"
+          >
+            Ingresar
+          </a>
+        </div>
+      )}
 
       {/* Member filter chips */}
       {!isLoading && membersWithPosts.length > 0 && (
