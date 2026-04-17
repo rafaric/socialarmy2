@@ -79,8 +79,8 @@ export default function EventsPage() {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.03 }}
-              className={`glass-card p-4 flex items-center gap-4 ${event.isArgentina ? "ring-1" : ""}`}
-              style={event.isArgentina ? { ringColor: "#cc2936", boxShadow: "0 0 16px #cc293620" } : {}}
+              className="glass-card p-4 flex items-center gap-4"
+              style={event.isArgentina ? { border: "1px solid #cc293660", boxShadow: "0 0 16px #cc293620" } : {}}
             >
               <span className="text-3xl shrink-0">{event.flag}</span>
               <div className="flex-1 min-w-0">
