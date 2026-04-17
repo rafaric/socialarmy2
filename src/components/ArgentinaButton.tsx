@@ -79,7 +79,7 @@ export default function ArgentinaButton() {
             exit={{ opacity: 0, y: -6, scale: 0.95 }}
             transition={{ duration: 0.18 }}
             className="absolute right-0 top-10 z-50 glass-card p-4 w-64 shadow-2xl"
-            style={{ border: "1px solid #cc293640" }}
+            style={{ background: "rgba(13, 21, 38, 0.96)", border: "1px solid #cc293650", backdropFilter: "blur(24px)" }}
           >
             <p className="text-[10px] uppercase tracking-widest text-[color:var(--text-muted)] mb-2">
               🇦🇷 Argentina — primer recital
