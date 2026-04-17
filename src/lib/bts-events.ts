@@ -381,6 +381,11 @@ export const BTS_EVENTS: BtsEvent[] = [
   },
 ];
 
+export function getTodayEvent(from: Date = new Date()): BtsEvent | null {
+  const today = from.toISOString().slice(0, 10);
+  return BTS_EVENTS.find((e) => e.dates.includes(today)) ?? null;
+}
+
 export function getNextEvent(from: Date = new Date()): BtsEvent | null {
   const today = from.toISOString().slice(0, 10);
   return (
