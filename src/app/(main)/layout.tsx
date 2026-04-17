@@ -1,5 +1,6 @@
 import NavigationCard from "@/components/NavigationCard";
 import EraSelector from "@/components/EraSelector";
+import EventsCard from "@/components/EventsCard";
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -11,7 +12,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       </header>
 
       <div className="flex max-w-6xl mx-auto px-4 pt-16 md:pt-10 gap-6">
-        {/* Sidebar */}
+        {/* Sidebar izquierdo */}
         <aside className="hidden md:flex md:flex-col w-56 shrink-0 sticky top-8 h-fit gap-3">
           <NavigationCard />
           <EraSelector />
@@ -26,6 +27,11 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         <main id="main-content" className="flex-1 min-w-0 pb-24 md:pb-8">
           {children}
         </main>
+
+        {/* Sidebar derecho */}
+        <aside className="hidden xl:flex xl:flex-col w-64 shrink-0 sticky top-8 h-fit gap-3">
+          <EventsCard />
+        </aside>
       </div>
     </div>
   );
