@@ -69,7 +69,7 @@ function NavigationCard() {
   async function signout() {
     await supabase.auth.signOut();
     setSession(null);
-    router.push("/auth/login");
+    router.push("/login");
   }
 
   function isActive(item: typeof NAV_ITEMS[number]) {
