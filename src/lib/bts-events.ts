@@ -381,13 +381,17 @@ export const BTS_EVENTS: BtsEvent[] = [
   },
 ];
 
+function localDateStr(d: Date = new Date()): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 export function getTodayEvent(from: Date = new Date()): BtsEvent | null {
-  const today = from.toISOString().slice(0, 10);
+  const today = localDateStr(from);
   return BTS_EVENTS.find((e) => e.dates.includes(today)) ?? null;
 }
 
 export function getNextEvent(from: Date = new Date()): BtsEvent | null {
-  const today = from.toISOString().slice(0, 10);
+  const today = localDateStr(from);
   return (
     BTS_EVENTS
       .filter((e) => e.dates.some((d) => d > today))
