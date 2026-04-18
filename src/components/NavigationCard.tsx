@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useUnreadCount, useRealtimeNotifications } from "@/hooks/useNotifications";
+import { usePendingPacks } from "@/hooks/usePacks";
 import { supabase } from "@/lib/supabase/browser";
 
 const NAV_ITEMS_PUBLIC = ["Inicio", "Buscar", "Eventos"];
@@ -58,6 +59,15 @@ const NAV_ITEMS = [
     ),
   },
   {
+    href: "/collection",
+    label: "Colección",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+        <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001a.752.752 0 0 1-.704 0l-.003-.001Z" />
+      </svg>
+    ),
+  },
+  {
     href: "/events",
     label: "Eventos",
     icon: (
@@ -74,6 +84,7 @@ function NavigationCard() {
   const router = useRouter();
   const { session, setSession, user } = useAuthStore();
   const { data: unreadCount = 0 } = useUnreadCount(user);
+  const { data: pendingPacks = [] } = usePendingPacks();
   useRealtimeNotifications(user);
 
   async function signout() {
@@ -131,6 +142,14 @@ function NavigationCard() {
                       style={{ background: "var(--accent)" }}
                     >
                       {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
+                  {item.label === "Colección" && pendingPacks.length > 0 && (
+                    <span
+                      className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full text-[10px] font-bold flex items-center justify-center text-white"
+                      style={{ background: "#f59e0b" }}
+                    >
+                      {pendingPacks.length}
                     </span>
                   )}
                 </span>

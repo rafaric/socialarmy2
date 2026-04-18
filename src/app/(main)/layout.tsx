@@ -2,6 +2,7 @@ import NavigationCard from "@/components/NavigationCard";
 import EraSelector from "@/components/EraSelector";
 import EventsCard from "@/components/EventsCard";
 import ArgentinaButton from "@/components/ArgentinaButton";
+import LoginStreakInit from "@/components/LoginStreakInit";
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -29,6 +30,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
         {/* Main content */}
         <main id="main-content" className="flex-1 min-w-0 pb-24 md:pb-8">
+          <LoginStreakInit />
           {children}
         </main>
 

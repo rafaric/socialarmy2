@@ -120,10 +120,18 @@ export function useCreatePost() {
         // Notifications are best-effort — don't block feed refresh on failure
       });
 
+      // Award super pack for posting (best-effort)
+      fetch("/api/packs/award", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ activity: "post", ref_id: data.id }),
+      }).catch(() => {});
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.invalidateQueries({ queryKey: ["packs", "pending"] });
     },
   });
 }

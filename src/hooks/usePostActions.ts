@@ -53,6 +53,11 @@ export function useToggleReaction(postId: string, authorId: string) {
           user_receptor: authorId,
           post_id: postId,
         });
+        fetch("/api/packs/award", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ activity: "like", ref_id: postId }),
+        }).catch(() => {});
       }
     },
     onSuccess: () => {
@@ -135,9 +140,15 @@ export function useAddComment(postId: string, authorId: string) {
         user_receptor: authorId,
         post_id: postId,
       });
+      fetch("/api/packs/award", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ activity: "comment", ref_id: postId }),
+      }).catch(() => {});
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["comments", postId] });
+      queryClient.invalidateQueries({ queryKey: ["packs", "pending"] });
     },
   });
 }
