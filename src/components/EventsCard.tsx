@@ -94,8 +94,8 @@ export default function EventsCard() {
   const nextDate = nextEv?.dates.find((d) => d > today) ?? null;
   const argDate  = argEv?.dates[0] ?? null;
 
-  // Si el próximo es el mismo que el de hoy (múltiples fechas), no duplicar
-  const showNext = nextEv && nextDate && nextEv.id !== todayEv?.id;
+  // Mostrar si es otro evento, o si es el mismo evento pero con una fecha diferente (multi-fecha)
+  const showNext = nextEv && nextDate && (nextEv.id !== todayEv?.id || nextDate !== today);
 
   return (
     <div className="glass-card p-4 flex flex-col gap-4">
