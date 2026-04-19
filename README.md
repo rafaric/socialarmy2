@@ -1,38 +1,73 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# ARMY Social Network
 
-## Getting Started
+Red social full-stack para la comunidad ARMY, construida con Next.js 15 App Router, TypeScript y Supabase.
 
-First, run the development server:
+## Features
+
+- **Feed social** — posts con fotos, videos, etiquetado de amigos, eras y miembros de BTS
+- **Reacciones** — 10 emojis animados con Framer Motion (💜🔥✨😭🥹🌟🫶🎵🤯👑)
+- **Stickers globales** — sistema de stickers en comentarios, subida por usuarios
+- **Encuestas** — polls en posts con notificaciones al creador y votantes
+- **Coleccionables** — sistema de fotocards por eras, sobres ganados por actividad, rareza y trading
+- **Eventos** — calendario del Arirang World Tour con countdown en tiempo real
+- **Notificaciones** — en tiempo real via Supabase Realtime
+- **Temas por era** — glassmorphism con paleta de colores según era discográfica activa
+- **PWA** — instalable en móvil
+
+## Stack
+
+| Capa | Tecnología |
+|------|-----------|
+| Framework | Next.js 15 (App Router) |
+| Lenguaje | TypeScript |
+| Runtime | Bun |
+| Base de datos | Supabase (PostgreSQL + RLS) |
+| Auth | Supabase Auth |
+| Storage | Supabase Storage |
+| State | Zustand v5 + React Query v5 |
+| Animaciones | Framer Motion |
+| Estilos | Tailwind CSS v4 |
+| Deploy | Vercel |
+
+## Desarrollo local
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
+bun install
+bun run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Requiere un archivo `.env.local` con:
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+```env
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+```
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+## Estructura
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+```
+src/
+├── app/
+│   ├── (auth)/         # Login / registro
+│   ├── (main)/         # Feed, perfil, colección, eventos
+│   └── api/            # API routes (polls, packs, cron)
+├── components/         # Componentes UI
+├── hooks/              # React Query hooks
+├── lib/                # Supabase clients, constantes, utilidades
+├── store/              # Zustand stores
+└── types/              # TypeScript types
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+## Coleccionables
 
-## Learn More
+El sistema de fotocards funciona con sobres que se ganan por actividad:
 
-To learn more about Next.js, take a look at the following resources:
+| Actividad | Sobre |
+|-----------|-------|
+| Publicar un post | Super (3 cartas) |
+| 5 días seguidos de login | Super (3 cartas) |
+| Dar like | Simple (1 carta) |
+| Comentar | Simple (1 carta) |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+Rarezas: **Common** (55%) · **Rare** (28%) · **Epic** (14%) · **Legendary** (3%)
