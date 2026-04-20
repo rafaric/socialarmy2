@@ -322,6 +322,272 @@ El build corre en la nube de Expo — no se necesita Android Studio instalado pa
 
 ---
 
+## Design Tokens — respetar al pie de la letra
+
+El objetivo es que un usuario que use web y mobile reconozca inmediatamente que es la misma app. No improvisar colores ni radios.
+
+### Cómo usar en NativeWind / StyleSheet
+
+Definir un archivo `lib/theme.ts` con todos los tokens y usarlo en toda la app:
+
+```ts
+// lib/theme.ts
+export const theme = {
+  colors: { /* ver abajo */ },
+  radius: { /* ver abajo */ },
+  shadow: { /* ver abajo */ },
+} as const;
+```
+
+---
+
+### Colores — tema default (púrpura ARMY)
+
+```ts
+colors: {
+  // Fondos
+  bgDeep:        "#070b16",   // fondo más oscuro — body/screen background
+  bgSurface:     "#0d1526",   // superficie de cards
+
+  // Glassmorphism
+  glassBg:       "rgba(13, 21, 38, 0.6)",
+  glassBorder:   "rgba(124, 77, 206, 0.25)",
+
+  // Accent
+  accent:        "#7c4dce",
+  accentHover:   "#9b6fe8",
+  accentGlow:    "rgba(124, 77, 206, 0.45)",
+  accentGold:    "#c9a84c",
+  accentGoldGlow:"rgba(201, 168, 76, 0.35)",
+
+  // Texto
+  textPrimary:   "#f0eeff",
+  textSecondary: "#9d8fcb",
+  textMuted:     "#8878c0",
+
+  // Aurora (gradiente de fondo animado)
+  aurora1:       "#0d1526",
+  aurora2:       "#130d2e",
+  aurora3:       "#0a1a1f",
+  aurora4:       "#1a0d26",
+}
+```
+
+### Colores — tema Arirang (rojo, era 2026 — tema activo ahora)
+
+```ts
+colors: {
+  bgDeep:        "#120808",
+  bgSurface:     "#1e0e0e",
+  glassBg:       "rgba(30, 14, 14, 0.65)",
+  glassBorder:   "rgba(204, 41, 54, 0.25)",
+  accent:        "#cc2936",
+  accentHover:   "#e53935",
+  accentGlow:    "rgba(204, 41, 54, 0.45)",
+  accentGold:    "#c9a84c",
+  textPrimary:   "#fff0f0",
+  textSecondary: "#c98a8a",
+  textMuted:     "#c06868",
+}
+```
+
+### Colores — rarezas de cartas (usar en colección y PackOpener)
+
+```ts
+rarity: {
+  common:    { color: "#9ca3af", glow: "rgba(156,163,175,0.4)" },
+  rare:      { color: "#60a5fa", glow: "rgba(96,165,250,0.5)"  },
+  epic:      { color: "#a855f7", glow: "rgba(168,85,247,0.6)"  },
+  legendary: { color: "#f59e0b", glow: "rgba(245,158,11,0.7)"  },
+}
+```
+
+### Colores — eras de BTS
+
+```ts
+eras: {
+  "2cool4skool": { color: "#e8b86d", bg: "rgba(232,184,109,0.15)" },
+  hyyh:          { color: "#ff8c69", bg: "rgba(255,140,105,0.15)" },
+  wings:         { color: "#9b6fe8", bg: "rgba(155,111,232,0.15)" },
+  love_yourself: { color: "#f06292", bg: "rgba(240,98,146,0.15)"  },
+  mots:          { color: "#4fc3f7", bg: "rgba(79,195,247,0.15)"  },
+  be:            { color: "#a5d6a7", bg: "rgba(165,214,167,0.15)" },
+  butter:        { color: "#f9d342", bg: "rgba(249,211,66,0.15)"  },
+  proof:         { color: "#c9a84c", bg: "rgba(201,168,76,0.15)"  },
+  arirang:       { color: "#cc2936", bg: "rgba(204,41,54,0.15)"   },
+}
+```
+
+### Colores — miembros BTS (para etiquetas y barras)
+
+```ts
+members: {
+  rm:       "#9b6fe8",
+  jin:      "#f06292",
+  suga:     "#4fc3f7",
+  jhope:    "#fbbf24",
+  jimin:    "#f472b6",
+  v:        "#34d399",
+  jungkook: "#60a5fa",
+}
+```
+
+---
+
+### Espaciado y radios
+
+```ts
+radius: {
+  card: 16,    // --radius-card: 1rem
+  button: 8,   // botones estándar
+  input: 8,    // inputs
+  full: 9999,  // pills / badges
+}
+
+spacing: {
+  // Usar los defaults de NativeWind (misma escala que Tailwind)
+  // p-4 = 16px, p-5 = 20px, p-6 = 24px, gap-3 = 12px, gap-4 = 16px
+}
+```
+
+---
+
+### Sombras
+
+```ts
+shadows: {
+  card:      "0 4px 32px rgba(124, 77, 206, 0.15)",
+  cardHover: "0 8px 48px rgba(124, 77, 206, 0.3)",
+  // En React Native usar elevation + shadowColor:
+  cardRN: {
+    shadowColor: "#7c4dce",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 8,
+  }
+}
+```
+
+---
+
+### Glass card — equivalente en React Native
+
+El glassmorphism requiere `expo-blur`. Instalar con `npx expo install expo-blur`.
+
+```tsx
+import { BlurView } from "expo-blur";
+
+// Equivalente al .glass-card del web
+function GlassCard({ children, style }) {
+  return (
+    <BlurView
+      intensity={60}
+      tint="dark"
+      style={[{
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: "rgba(124, 77, 206, 0.25)",
+        overflow: "hidden",
+        shadowColor: "#7c4dce",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 16,
+        elevation: 8,
+      }, style]}
+    >
+      {children}
+    </BlurView>
+  );
+}
+```
+
+---
+
+### Botón accent — equivalente en React Native
+
+```tsx
+// Equivalente al .btn-accent del web
+function AccentButton({ onPress, children, disabled }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      style={({ pressed }) => ({
+        backgroundColor: pressed ? "#9b6fe8" : "#7c4dce",
+        borderRadius: 8,
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        shadowColor: "#7c4dce",
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: pressed ? 0.6 : 0.45,
+        shadowRadius: pressed ? 16 : 8,
+        elevation: pressed ? 6 : 4,
+        opacity: disabled ? 0.5 : 1,
+      })}
+    >
+      <Text style={{ color: "#fff", fontWeight: "600", fontSize: 14 }}>
+        {children}
+      </Text>
+    </Pressable>
+  );
+}
+```
+
+---
+
+### Fondo aurora — equivalente en React Native
+
+En web es un CSS gradient animado. En mobile usar un gradiente estático con `expo-linear-gradient` como aproximación:
+
+```tsx
+import { LinearGradient } from "expo-linear-gradient";
+
+// En el root layout, detrás de todo el contenido
+function AuroraBg() {
+  return (
+    <LinearGradient
+      colors={["#0d1526", "#130d2e", "#0a1a1f", "#070b16"]}
+      locations={[0, 0.3, 0.7, 1]}
+      start={{ x: 0.2, y: 0.1 }}
+      end={{ x: 0.8, y: 0.9 }}
+      style={StyleSheet.absoluteFillObject}
+    />
+  );
+}
+```
+
+---
+
+### Tipografía
+
+La fuente especial `Monoton` se usa solo en el logo "ARMY". El resto es sistema.
+
+```ts
+fonts: {
+  // Logo ARMY — cargar con expo-font
+  // Descargar Monoton de Google Fonts e incluir en assets/fonts/
+  logo: "Monoton",
+
+  // Resto de la UI — fuente del sistema
+  regular: undefined,   // Platform default
+  medium:  undefined,
+  bold:    undefined,
+
+  // Tamaños equivalentes a las clases Tailwind usadas en el web
+  sizes: {
+    xs:   10,   // text-xs
+    sm:   12,   // text-sm
+    base: 14,   // text-base (base en mobile)
+    lg:   16,   // text-lg
+    xl:   18,   // text-xl
+    "2xl": 22,  // text-2xl
+  }
+}
+```
+
+---
+
 ## Notas para el agente en Windows
 
 1. Clonar este repo para entender el modelo de datos y la lógica de negocio
