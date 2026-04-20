@@ -62,8 +62,18 @@ export async function GET(req: NextRequest) {
     } catch { /* imagen no disponible — continuamos sin ella */ }
   }
 
-  // "Rolling Stone" o "@username" si está disponible
-  const sourceLabel = author ?? publisher ?? null;
+  // Derivar el nombre de la página/autor según la fuente
+  let sourceLabel: string | null = author ?? null;
+
+  if (!sourceLabel && domain.includes("facebook.com") && title) {
+    // "Rolling Stone | Facebook" → "Rolling Stone"
+    // "OT7Live - Facebook" → "OT7Live"
+    sourceLabel = title.replace(/\s*[|\-–]\s*Facebook.*$/i, "").trim() || null;
+  }
+
+  if (!sourceLabel && publisher && publisher.toLowerCase() !== domain) {
+    sourceLabel = publisher;
+  }
 
   return NextResponse.json({
     description: description ?? title ?? "",
