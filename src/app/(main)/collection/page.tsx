@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuthStore } from "@/store/useAuthStore";
 import { usePendingPacks, useCollection } from "@/hooks/usePacks";
 import PackOpener from "@/components/PackOpener";
+import CollectionOnboarding from "@/components/CollectionOnboarding";
 import type { PendingPack } from "@/hooks/usePacks";
 
 const RARITY_CONFIG = {
@@ -146,6 +147,8 @@ export default function CollectionPage() {
           </AnimatePresence>
         </div>
       )}
+
+      <CollectionOnboarding />
 
       {/* Pack opener modal */}
       <AnimatePresence>

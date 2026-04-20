@@ -21,6 +21,20 @@ export async function POST(req: NextRequest) {
 
   const db = admin();
 
+  // Cap diario: máximo 5 sobres simples por día
+  const isSimple = !SUPER_ACTIVITIES.has(activity);
+  if (isSimple) {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const { count } = await db
+      .from("pack_log")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .eq("pack_type", "simple")
+      .gte("created_at", todayStart.toISOString());
+    if ((count ?? 0) >= 5) return NextResponse.json({ daily_limit_reached: true });
+  }
+
   // Idempotency — evitar doble reward
   const { error: dupError } = await db.from("activity_rewards").insert({
     user_id: user.id,

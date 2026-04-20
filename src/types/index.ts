@@ -9,6 +9,7 @@ export interface Profile {
   bias_wrecker?: string | null;
   fav_song?: string | null;
   fav_album?: string | null;
+  is_admin?: boolean;
 }
 
 export interface Photo {
