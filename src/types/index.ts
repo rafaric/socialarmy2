@@ -37,6 +37,8 @@ export interface Post {
   bts_members?: string[] | null;
   poll?: Poll | null;
   sticker_url?: string | null;
+  source_url?: string | null;
+  source_label?: string | null;
 }
 
 export type ReactionType =

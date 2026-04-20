@@ -33,6 +33,8 @@ const CONTENT_CLAMP_LINES = 4;
 type PostsCardProps = Omit<Post, "author"> & {
   bts_members?: string[] | null;
   forceExpanded?: boolean;
+  source_url?: string | null;
+  source_label?: string | null;
 };
 
 const PostsCard = ({
@@ -47,6 +49,8 @@ const PostsCard = ({
   poll,
   profiles: authorProfile,
   forceExpanded = false,
+  source_url,
+  source_label,
 }: PostsCardProps) => {
   const { session, user } = useAuthStore();
   const isReadOnly = !user || user === DEMO_USER_ID;
@@ -346,6 +350,26 @@ const PostsCard = ({
             />
           )}
         </AnimatePresence>
+
+        {/* Source attribution */}
+        {source_url && (
+          <a
+            href={source_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 mt-2 w-fit group"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3 text-[color:var(--text-muted)] group-hover:text-[color:var(--accent)] transition-colors shrink-0">
+              <path fillRule="evenodd" d="M19.902 4.098a3.75 3.75 0 0 0-5.304 0l-4.5 4.5a3.75 3.75 0 0 0 1.035 6.037.75.75 0 0 1-.646 1.353 5.25 5.25 0 0 1-1.449-8.45l4.5-4.5a5.25 5.25 0 1 1 7.424 7.424l-1.757 1.757a.75.75 0 1 1-1.06-1.06l1.757-1.757a3.75 3.75 0 0 0 0-5.304Zm-7.389 4.267a.75.75 0 0 1 1-.353 5.25 5.25 0 0 1 1.449 8.45l-4.5 4.5a5.25 5.25 0 1 1-7.424-7.424l1.757-1.757a.75.75 0 1 1 1.06 1.06l-1.757 1.757a3.75 3.75 0 1 0 5.304 5.304l4.5-4.5a3.75 3.75 0 0 0-.477-5.794.75.75 0 0 1-.354-1Z" clipRule="evenodd" />
+            </svg>
+            <span className="text-[10px] text-[color:var(--text-muted)] group-hover:text-[color:var(--accent)] transition-colors truncate max-w-[240px]">
+              {(() => {
+                const domain = (() => { try { return new URL(source_url!).hostname.replace(/^www\./, ""); } catch { return source_url!; } })();
+                return source_label ? `Vía ${source_label} · ${domain}` : `Vía ${domain}`;
+              })()}
+            </span>
+          </a>
+        )}
 
         {/* Reaction counts */}
         {reactionCounts.length > 0 && (

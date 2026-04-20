@@ -19,6 +19,8 @@ interface PostWithProfile {
   now_playing: string | null;
   bts_members: string[] | null;
   poll: Poll | null;
+  source_url: string | null;
+  source_label: string | null;
   profiles: { id: string; name: string; avatar: string } | { id: string; name: string; avatar: string }[] | null;
 }
 
@@ -44,6 +46,8 @@ function mapPostToType(post: PostWithProfile): Post {
     now_playing: post.now_playing,
     bts_members: post.bts_members,
     poll: post.poll,
+    source_url: post.source_url,
+    source_label: post.source_label,
     profiles: authorProfile,
   };
 }
@@ -54,7 +58,7 @@ export function usePosts() {
     queryFn: async (): Promise<Post[]> => {
       const { data, error } = await supabase
         .from("posts")
-        .select("id, content, created_at, author, photos, tagged, parent, era, now_playing, bts_members, poll, profiles!posts_author_fkey(id, name, avatar)")
+        .select("id, content, created_at, author, photos, tagged, parent, era, now_playing, bts_members, poll, source_url, source_label, profiles!posts_author_fkey(id, name, avatar)")
         .is("parent", null)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -69,7 +73,7 @@ export function useUserPosts(userId: string | null) {
     queryFn: async (): Promise<Post[]> => {
       const { data, error } = await supabase
         .from("posts")
-        .select("id, content, created_at, author, photos, tagged, parent, era, now_playing, bts_members, poll, profiles!posts_author_fkey(id, name, avatar)")
+        .select("id, content, created_at, author, photos, tagged, parent, era, now_playing, bts_members, poll, source_url, source_label, profiles!posts_author_fkey(id, name, avatar)")
         .is("parent", null)
         .eq("author", userId!);
       if (error) throw error;
@@ -89,18 +93,20 @@ interface CreatePostInput {
   nowPlaying?: string | null;
   btsMembers?: string[];
   poll?: Poll | null;
+  sourceUrl?: string | null;
+  sourceLabel?: string | null;
 }
 
 export function useCreatePost() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ userId, content, uploads, selectedFriends, friends, era, nowPlaying, btsMembers, poll }: CreatePostInput) => {
+    mutationFn: async ({ userId, content, uploads, selectedFriends, friends, era, nowPlaying, btsMembers, poll, sourceUrl, sourceLabel }: CreatePostInput) => {
       if (!content.trim()) throw new Error("El contenido no puede estar vacío");
 
       const { data, error } = await supabase
         .from("posts")
-        .insert({ author: userId, content, photos: uploads, tagged: selectedFriends, era: era ?? null, now_playing: nowPlaying ?? null, bts_members: btsMembers?.length ? btsMembers : null, poll: poll ?? null })
+        .insert({ author: userId, content, photos: uploads, tagged: selectedFriends, era: era ?? null, now_playing: nowPlaying ?? null, bts_members: btsMembers?.length ? btsMembers : null, poll: poll ?? null, source_url: sourceUrl ?? null, source_label: sourceLabel ?? null })
         .select()
         .single();
 

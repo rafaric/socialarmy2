@@ -36,6 +36,10 @@ const PostForm = ({ profile }: PostFormProps) => {
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [activeSection, setActiveSection] = useState<ActiveSection>(null);
   const [poll, setPoll] = useState<PollDraft | null>(null);
+  const [sourceUrl, setSourceUrl] = useState<string | null>(null);
+  const [sourceDomain, setSourceDomain] = useState<string | null>(null);
+  const [sourceLabel, setSourceLabel] = useState<string | null>(null);
+  const [unfurling, setUnfurling] = useState(false);
   const nowPlaying = selectedAlbum && selectedTrack ? `${selectedTrack} — ${BTS_DISCOGRAPHY.find(a => a.key === selectedAlbum)?.title}` : "";
 
   function toggleSection(section: ActiveSection) {
@@ -72,6 +76,68 @@ const PostForm = ({ profile }: PostFormProps) => {
     setSelectedMembers([]);
     setActiveSection(null);
     setPoll(null);
+    setSourceUrl(null);
+    setSourceDomain(null);
+    setSourceLabel(null);
+  }
+
+  async function handlePaste(e: React.ClipboardEvent<HTMLTextAreaElement>) {
+    const text = e.clipboardData.getData("text");
+    const match = text.match(/https?:\/\/[^\s]+/);
+    if (!match) return;
+
+    const pasted = match[0];
+    const isOnlyUrl = text.trim() === pasted.trim();
+
+    // Si el paste es solo una URL, evitamos que se inserte en el textarea —
+    // la reemplazaremos con la descripción extraída
+    if (isOnlyUrl) e.preventDefault();
+
+    setUnfurling(true);
+    try {
+      const res = await fetch(`/api/unfurl?url=${encodeURIComponent(pasted)}`);
+      if (!res.ok) {
+        if (res.status === 422) {
+          toast.error("Este contenido es privado o no está disponible para compartir.");
+        }
+        // Si el paste era solo URL y falló, lo insertamos igual para no perderlo
+        if (isOnlyUrl) setContent((prev) => prev ? `${prev}\n${pasted}` : pasted);
+        return;
+      }
+      const data = await res.json() as {
+        description: string;
+        imageBase64: string | null;
+        imageType: string | null;
+        domain: string;
+        source_url: string;
+        source_label: string | null;
+      };
+
+      // Si era solo URL, reemplazamos con la descripción; si venía con texto, no tocamos el content
+      if (isOnlyUrl && data.description) {
+        setContent(data.description);
+      }
+
+      setSourceUrl(data.source_url);
+      setSourceDomain(data.domain);
+      setSourceLabel(data.source_label);
+
+      // Convert base64 image to File and add to uploads
+      if (data.imageBase64 && data.imageType) {
+        const byteStr = atob(data.imageBase64);
+        const arr = new Uint8Array(byteStr.length);
+        for (let i = 0; i < byteStr.length; i++) arr[i] = byteStr.charCodeAt(i);
+        const blob = new Blob([arr], { type: data.imageType });
+        const ext = data.imageType.split("/")[1] ?? "jpg";
+        const file = new File([blob], `shared.${ext}`, { type: data.imageType });
+        const preview = URL.createObjectURL(blob);
+        setUploads((prev) => [...prev, { file, preview }]);
+      }
+    } catch {
+      if (isOnlyUrl) setContent((prev) => prev ? `${prev}\n${pasted}` : pasted);
+    } finally {
+      setUnfurling(false);
+    }
   }
 
   async function handlePublish() {
@@ -91,6 +157,8 @@ const PostForm = ({ profile }: PostFormProps) => {
             ends_at: new Date(Date.now() + poll.duration * 86_400_000).toISOString(),
           }
         : null,
+      sourceUrl,
+      sourceLabel,
     });
     resetModal();
   }
@@ -164,15 +232,53 @@ const PostForm = ({ profile }: PostFormProps) => {
 
               {/* Textarea */}
               <label htmlFor="post-content" className="sr-only">Contenido del post</label>
-              <textarea
-                id="post-content"
-                rows={5}
-                className="army-input w-full px-4 py-3 text-sm resize-none rounded-xl"
-                placeholder="¿En qué estás pensando?"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                aria-required="true"
-              />
+              <div className="relative">
+                <textarea
+                  id="post-content"
+                  rows={5}
+                  className="army-input w-full px-4 py-3 text-sm resize-none rounded-xl"
+                  placeholder="¿En qué estás pensando? Podés pegar un link para compartir contenido."
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  onPaste={handlePaste}
+                  aria-required="true"
+                />
+                {unfurling && (
+                  <div className="absolute inset-0 rounded-xl flex items-center justify-center gap-2 text-xs text-[color:var(--text-muted)]"
+                    style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(2px)" }}>
+                    <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                        <path fillRule="evenodd" d="M4.755 10.059a7.5 7.5 0 0 1 12.548-3.364l1.903 1.903h-3.183a.75.75 0 1 0 0 1.5h4.992a.75.75 0 0 0 .75-.75V4.356a.75.75 0 0 0-1.5 0v3.18l-1.9-1.9A9 9 0 0 0 3.306 9.67a.75.75 0 1 0 1.45.388Zm15.408 3.352a.75.75 0 0 0-.919.53 7.5 7.5 0 0 1-12.548 3.364l-1.902-1.903h3.183a.75.75 0 0 0 0-1.5H2.984a.75.75 0 0 0-.75.75v4.992a.75.75 0 0 0 1.5 0v-3.18l1.9 1.9a9 9 0 0 0 15.059-4.035.75.75 0 0 0-.53-.918Z" clipRule="evenodd" />
+                      </svg>
+                    </motion.div>
+                    Obteniendo contenido...
+                  </div>
+                )}
+              </div>
+
+              {/* Source attribution badge */}
+              {sourceUrl && sourceDomain && (
+                <motion.div
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center justify-between px-3 py-2 rounded-lg mt-1"
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 text-[color:var(--accent)] shrink-0">
+                      <path fillRule="evenodd" d="M19.902 4.098a3.75 3.75 0 0 0-5.304 0l-4.5 4.5a3.75 3.75 0 0 0 1.035 6.037.75.75 0 0 1-.646 1.353 5.25 5.25 0 0 1-1.449-8.45l4.5-4.5a5.25 5.25 0 1 1 7.424 7.424l-1.757 1.757a.75.75 0 1 1-1.06-1.06l1.757-1.757a3.75 3.75 0 0 0 0-5.304Zm-7.389 4.267a.75.75 0 0 1 1-.353 5.25 5.25 0 0 1 1.449 8.45l-4.5 4.5a5.25 5.25 0 1 1-7.424-7.424l1.757-1.757a.75.75 0 1 1 1.06 1.06l-1.757 1.757a3.75 3.75 0 1 0 5.304 5.304l4.5-4.5a3.75 3.75 0 0 0-.477-5.794.75.75 0 0 1-.354-1Z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-xs text-[color:var(--text-muted)] truncate">
+                      Vía {sourceLabel ? `${sourceLabel} · ${sourceDomain}` : sourceDomain}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { setSourceUrl(null); setSourceDomain(null); }}
+                    className="text-[color:var(--text-muted)] hover:text-[color:var(--text-primary)] text-xs ml-2 shrink-0"
+                  >✕</button>
+                </motion.div>
+              )}
 
               {/* Media preview */}
               {uploads.length > 0 && (
