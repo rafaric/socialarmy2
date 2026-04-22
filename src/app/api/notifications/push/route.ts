@@ -1,11 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
+import crypto from "node:crypto";
+import { rateLimit, buildKey } from "@/lib/rate-limit";
 
 function admin() {
   return createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
+}
+
+/**
+ * Compara dos strings usando tiempo constante para prevenir timing attacks.
+ * Retorna false inmediatamente si las longitudes difieren (sin leak de info útil).
+ */
+function timingSafeEqualStr(a: string, b: string): boolean {
+  const ab = Buffer.from(a);
+  const bb = Buffer.from(b);
+  if (ab.length !== bb.length) return false;
+  return crypto.timingSafeEqual(ab, bb);
 }
 
 export async function GET() {
@@ -20,7 +33,34 @@ const MESSAGES: Record<string, string> = {
 };
 
 export async function POST(req: NextRequest) {
-  // Supabase webhook sends the row in `record`
+  // 1. Verificar webhook secret — PRIMER paso antes de leer body.
+  const provided = req.headers.get("x-webhook-secret") ?? "";
+  const expected = process.env.SUPABASE_WEBHOOK_SECRET ?? "";
+  const previous = process.env.SUPABASE_WEBHOOK_SECRET_PREVIOUS ?? "";
+
+  if (!expected) {
+    console.warn("SUPABASE_WEBHOOK_SECRET not set — webhook endpoint is unprotected. Set this variable in production.");
+  } else {
+    const matchesCurrent  = timingSafeEqualStr(provided, expected);
+    const matchesPrevious = previous !== "" && timingSafeEqualStr(provided, previous);
+
+    if (!matchesCurrent && !matchesPrevious) {
+      console.warn("[invalid_webhook_secret] route=notifications/push ip=%s", buildKey("notifications/push", req, null));
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  }
+
+  // 2. Rate limit por IP (defense in depth, ya autenticado por secret).
+  const key = buildKey("notifications/push", req, null);
+  if (!rateLimit(key, 60, 60_000)) {
+    console.warn("[rate_limit_exceeded] route=notifications/push ip=%s", key);
+    return NextResponse.json(
+      { error: "Too many requests", retryAfter: 60 },
+      { status: 429, headers: { "Retry-After": "60" } }
+    );
+  }
+
+  // 3. Lógica original del handler.
   const body = await req.json().catch(() => null);
   const record = body?.record;
 
