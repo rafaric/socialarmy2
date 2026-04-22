@@ -71,11 +71,8 @@ export function useMarkAllRead(userId: string | null) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async () => {
-      await supabase
-        .from("notifications")
-        .update({ read: true })
-        .eq("user_receptor", userId!)
-        .eq("read", false);
+      const res = await fetch("/api/notifications/read-all", { method: "POST" });
+      if (!res.ok) throw new Error("Failed to mark notifications as read");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications", userId] });
