@@ -126,7 +126,8 @@ export interface SavedPost {
 
 // Payload y respuestas de /api/friends/request
 export type FriendRequestPayload = { friend_id: string };
-export type FriendRequestResponse = { requestId: string };
+// Nota: la tabla friends usa clave compuesta (sin id autogenerado), por eso ok: true
+export type FriendRequestResponse = { ok: boolean };
 export type FriendRequestConflict = { error: string; status: "pending" | "accepted" };
 
 // Respuesta de /api/uploads/validate

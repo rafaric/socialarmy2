@@ -122,6 +122,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: "Failed to notify" }, { status: 500 });
   }
 
-  // 8. Éxito. La tabla friends usa clave compuesta, retornamos ok.
-  return NextResponse.json({ ok: true } as unknown as FriendRequestResponse, { status: 201 });
+  // 8. Éxito. La tabla friends usa clave compuesta (sin id autogenerado), retornamos ok.
+  const response: FriendRequestResponse = { ok: true };
+  return NextResponse.json(response, { status: 201 });
 }

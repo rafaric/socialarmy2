@@ -104,7 +104,7 @@ export function useSendFriendRequest() {
         );
       }
 
-      return res.json() as Promise<{ ok: boolean }>;
+      return res.json() as Promise<{ ok: boolean }>;  // tabla friends usa clave compuesta
     },
     onMutate: async ({ friendId }) => {
       // Optimistic update: marcar como pending en el cache.
