@@ -13,6 +13,7 @@ import { BTS_DISCOGRAPHY, getAlbumByKey } from "@/lib/bts-discography";
 import { supabase } from "@/lib/supabase/browser";
 import { useAuthStore } from "@/store/useAuthStore";
 import Link from "next/link";
+import EraSelector from "@/components/EraSelector";
 import FriendButton from "@/components/FriendButton";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -485,6 +486,11 @@ export default function ProfileView({
         {/* Account */}
         {activeTab === "account" && isOwn && (
           <div className="flex flex-col gap-3 max-w-md">
+            {/* Tema visual — solo mobile (en desktop está en el sidebar) */}
+            <div className="md:hidden">
+              <EraSelector />
+            </div>
+
             {/* Info */}
             <div className="flex flex-col gap-1.5 p-4 rounded-xl" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
               <p className="text-[10px] text-[color:var(--text-muted)] uppercase tracking-wider mb-1">Información de cuenta</p>
