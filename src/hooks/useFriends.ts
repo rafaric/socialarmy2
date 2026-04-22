@@ -85,26 +85,43 @@ function invalidateFriendQueries(queryClient: ReturnType<typeof useQueryClient>,
   queryClient.invalidateQueries({ queryKey: ["friend-status", otherId, userId] });
 }
 
-// Enviar solicitud de amistad
+// Enviar solicitud de amistad (server-side via API route)
 export function useSendFriendRequest() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ userId, friendId }: { userId: string; friendId: string }) => {
-      const { error } = await supabase
-        .from("friends")
-        .insert({ user_id: userId, friend_id: friendId, status: "pending" });
-      if (error) throw error;
-
-      // Notificación al receptor
-      await supabase.from("notifications").insert({
-        notification_type: "friend_request",
-        user_emisor: userId,
-        user_receptor: friendId,
-        post_id: null,
+      void userId; // Se usa solo para invalidar queries; la auth ocurre server-side.
+      const res = await fetch("/api/friends/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ friend_id: friendId }),
       });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Failed to send friend request" }));
+        throw new Error(
+          (err as { error?: string }).error ?? "Failed to send friend request"
+        );
+      }
+
+      return res.json() as Promise<{ ok: boolean }>;
     },
-    onSuccess: (_data, { userId, friendId }) => {
-      invalidateFriendQueries(queryClient, userId, friendId);
+    onMutate: async ({ friendId }) => {
+      // Optimistic update: marcar como pending en el cache.
+      await queryClient.cancelQueries({ queryKey: ["friendship", friendId] });
+      const previous = queryClient.getQueryData(["friendship", friendId]);
+      queryClient.setQueryData(["friendship", friendId], { status: "pending" });
+      return { previous, friendId };
+    },
+    onError: (_err, _vars, context) => {
+      // Rollback del optimistic update.
+      if (context?.previous !== undefined) {
+        queryClient.setQueryData(["friendship", context.friendId], context.previous);
+      }
+    },
+    onSettled: (_data, _err, { friendId }) => {
+      queryClient.invalidateQueries({ queryKey: ["friendship", friendId] });
+      queryClient.invalidateQueries({ queryKey: ["friends"] });
     },
   });
 }
