@@ -16,6 +16,7 @@ import Link from "next/link";
 import EraSelector from "@/components/EraSelector";
 import FriendButton from "@/components/FriendButton";
 import { useBlockUser, useUnblockUser, useIsBlocked } from "@/hooks/useBlocks";
+import { useFriendStatus } from "@/hooks/useFriends";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Profile, Photo, TaggedFriend } from "@/types";
@@ -80,6 +81,9 @@ export default function ProfileView({
   const iBlocked = useIsBlocked(profile.id);
   const blockUser = useBlockUser();
   const unblockUser = useUnblockUser();
+  const { data: friendStatus } = useFriendStatus(currentUserId, profile.id);
+  const isFriend = friendStatus === "accepted";
+  const isPrivateAndNotFriend = !isOwn && !!profile.is_private && !isFriend;
 
 
   useEffect(() => { setActiveTab(tab); }, [tab]);
@@ -491,7 +495,13 @@ export default function ProfileView({
         {/* Posts */}
         {activeTab === "posts" && (
           <div>
-            {initialPosts.length === 0 ? (
+            {isPrivateAndNotFriend ? (
+              <div className="py-12 flex flex-col items-center gap-3 text-center">
+                <span className="text-3xl">🔒</span>
+                <p className="text-sm font-medium text-[color:var(--text-primary)]">Perfil privado</p>
+                <p className="text-xs text-[color:var(--text-muted)] max-w-xs">Solo los amigos de este usuario pueden ver sus publicaciones.</p>
+              </div>
+            ) : initialPosts.length === 0 ? (
               <p className="text-[color:var(--text-muted)] text-sm text-center py-8">Sin publicaciones aún</p>
             ) : (
               initialPosts.map((post) => {
@@ -515,6 +525,7 @@ export default function ProfileView({
                 );
               })
             )}
+
           </div>
         )}
 
@@ -589,6 +600,45 @@ export default function ProfileView({
               >
                 {passwordLoading ? "Actualizando..." : "Actualizar contraseña"}
               </button>
+            </div>
+
+            {/* Privacidad */}
+            <div className="flex flex-col gap-3 p-4 rounded-xl" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <p className="text-[10px] text-[color:var(--text-muted)] uppercase tracking-wider">Privacidad</p>
+
+              {[
+                { key: "searchable" as const, label: "Aparecer en búsquedas", description: "Otros usuarios pueden encontrarte por nombre", defaultVal: true },
+                { key: "is_private" as const, label: "Perfil privado", description: "Solo tus amigos pueden ver tus publicaciones", defaultVal: false },
+              ].map(({ key, label, description, defaultVal }) => {
+                const value = profile[key] ?? defaultVal;
+                return (
+                  <div key={key} className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm text-[color:var(--text-primary)]">{label}</p>
+                      <p className="text-xs text-[color:var(--text-muted)]">{description}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        await supabase.from("profiles").update({ [key]: !value }).eq("id", profile.id);
+                        queryClient.invalidateQueries({ queryKey: ["profile", profile.id] });
+                      }}
+                      className="relative w-10 h-5.5 rounded-full transition-colors duration-200 shrink-0"
+                      style={{
+                        background: value ? "var(--accent)" : "rgba(255,255,255,0.15)",
+                        width: "2.5rem",
+                        height: "1.375rem",
+                      }}
+                      aria-label={label}
+                    >
+                      <span
+                        className="absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform duration-200"
+                        style={{ transform: value ? "translateX(1.125rem)" : "translateX(0.125rem)" }}
+                      />
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

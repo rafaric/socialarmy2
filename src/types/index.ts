@@ -10,6 +10,8 @@ export interface Profile {
   fav_song?: string | null;
   fav_album?: string | null;
   is_admin?: boolean;
+  searchable?: boolean;
+  is_private?: boolean;
 }
 
 export interface Photo {

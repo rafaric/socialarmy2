@@ -30,6 +30,7 @@ export function useSearchProfiles(query: string, blockedIds: string[] = []) {
         .from("profiles")
         .select("id, name, avatar, bias, fav_album")
         .ilike("name", `%${query}%`)
+        .neq("searchable", false)
         .limit(20);
       if (blockedIds.length > 0) {
         q = q.not("id", "in", `(${blockedIds.join(",")})`);
