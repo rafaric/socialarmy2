@@ -8,6 +8,10 @@ function admin() {
   );
 }
 
+export async function GET() {
+  return NextResponse.json({ ok: true });
+}
+
 const MESSAGES: Record<string, string> = {
   like:       "reaccionó a tu publicación",
   comentario: "comentó tu publicación",
