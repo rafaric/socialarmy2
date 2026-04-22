@@ -1,0 +1,60 @@
+schema: spec-driven
+
+context: |
+  Tech stack: Next.js 16 App Router, TypeScript, Bun, React 19, Supabase (PostgreSQL + RLS), Zustand v5, React Query v5, Framer Motion, Tailwind CSS v4, Vercel
+  Architecture: App Router with route groups (auth), (main); API routes in src/app/api/; client hooks in src/hooks/; Supabase browser + server clients; proxy.ts middleware for auth
+  Testing: Vitest + @testing-library/react + jsdom — 2 existing test files (login, Avatar)
+  Style: ESLint (next config), TypeScript strict mode, no prettier configured
+  Key patterns: useQuery/useMutation for all data; API routes use admin client to bypass RLS; block/privacy system application-level + RLS
+
+strict_tdd: true
+
+testing:
+  runner:
+    framework: vitest
+    command: bun run test
+    run_command: bun run test:run
+  layers:
+    unit:
+      available: true
+      tool: vitest + @testing-library/react
+    integration:
+      available: true
+      tool: "@testing-library/react + jsdom"
+    e2e:
+      available: false
+  coverage:
+    available: true
+    command: bun run test:run --coverage
+  quality:
+    linter:
+      available: true
+      command: bun run lint
+    type_checker:
+      available: true
+      command: bun run typecheck
+    formatter:
+      available: false
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes
+    - Identify affected API routes, hooks, and components
+  specs:
+    - Use Given/When/Then format for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+  design:
+    - Document architecture decisions with rationale
+    - Specify which layer handles each concern (RLS vs app-level)
+  tasks:
+    - Group by phase (infrastructure, implementation, testing)
+    - Use hierarchical numbering (1.1, 1.2)
+    - Keep tasks completable in one session
+  apply:
+    - Follow existing patterns (useQuery/useMutation, API route with admin client)
+    - Run typecheck after every change
+  verify:
+    - Run bun run test:run + bun run typecheck
+    - Compare implementation against every spec scenario
+  archive:
+    - Warn before merging destructive deltas
