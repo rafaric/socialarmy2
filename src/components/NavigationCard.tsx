@@ -121,6 +121,9 @@ function NavigationCard() {
               key={item.label}
               href={getHref(item)}
               className="relative flex-1 md:flex-none group"
+              onClick={() => {
+                if (active) window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
             >
               {active && (
                 <motion.div
