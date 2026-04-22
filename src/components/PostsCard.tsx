@@ -175,7 +175,7 @@ const PostsCard = ({
               </button>
             </DropdownMenu.Trigger>
             <DropdownMenu.Portal>
-              <DropdownMenu.Content className="z-50 min-w-[160px] glass-card rounded-lg shadow-xl py-1 text-sm" sideOffset={5} align="end">
+              <DropdownMenu.Content className="z-50 min-w-[160px] glass-card rounded-lg shadow-xl py-1 text-sm" style={{ background: "rgba(13,10,25,0.93)", backdropFilter: "none", WebkitBackdropFilter: "none" }} sideOffset={5} align="end">
                 <DropdownMenu.Item className="px-4 py-2.5 cursor-pointer text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] hover:bg-white/5 outline-none transition-colors" onSelect={handleToggleSave}>
                   {isSaved ? "Quitar guardado" : "Guardar post"}
                 </DropdownMenu.Item>
