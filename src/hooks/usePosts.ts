@@ -52,15 +52,21 @@ function mapPostToType(post: PostWithProfile): Post {
   };
 }
 
-export function usePosts() {
+export function usePosts(blockedIds: string[] = []) {
   return useQuery({
-    queryKey: ["posts"],
+    queryKey: ["posts", blockedIds],
     queryFn: async (): Promise<Post[]> => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("posts")
         .select("id, content, created_at, author, photos, tagged, parent, era, now_playing, bts_members, poll, source_url, source_label, profiles!posts_author_fkey(id, name, avatar)")
         .is("parent", null)
         .order("created_at", { ascending: false });
+
+      if (blockedIds.length > 0) {
+        query = query.not("author", "in", `(${blockedIds.join(",")})`);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return (data ?? []).map(mapPostToType);
     },

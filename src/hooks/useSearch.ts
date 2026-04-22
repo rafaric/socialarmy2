@@ -22,15 +22,19 @@ export function useDebounce(value: string, delay = 300) {
   return debounced;
 }
 
-export function useSearchProfiles(query: string) {
+export function useSearchProfiles(query: string, blockedIds: string[] = []) {
   return useQuery({
-    queryKey: ["search-profiles", query],
+    queryKey: ["search-profiles", query, blockedIds],
     queryFn: async (): Promise<Profile[]> => {
-      const { data, error } = await supabase
+      let q = supabase
         .from("profiles")
         .select("id, name, avatar, bias, fav_album")
         .ilike("name", `%${query}%`)
         .limit(20);
+      if (blockedIds.length > 0) {
+        q = q.not("id", "in", `(${blockedIds.join(",")})`);
+      }
+      const { data, error } = await q;
       if (error) throw error;
       return (data ?? []) as Profile[];
     },
@@ -39,17 +43,21 @@ export function useSearchProfiles(query: string) {
   });
 }
 
-export function useSearchPosts(query: string) {
+export function useSearchPosts(query: string, blockedIds: string[] = []) {
   return useQuery({
-    queryKey: ["search-posts", query],
+    queryKey: ["search-posts", query, blockedIds],
     queryFn: async (): Promise<PostResult[]> => {
-      const { data, error } = await supabase
+      let q = supabase
         .from("posts")
         .select("id, content, created_at, author, era, bts_members, profiles!posts_author_fkey(id, name, avatar)")
         .ilike("content", `%${query}%`)
         .is("parent", null)
         .order("created_at", { ascending: false })
         .limit(20);
+      if (blockedIds.length > 0) {
+        q = q.not("author", "in", `(${blockedIds.join(",")})`);
+      }
+      const { data, error } = await q;
       if (error) throw error;
       return (data ?? []) as PostResult[];
     },

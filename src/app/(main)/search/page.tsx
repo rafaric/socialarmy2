@@ -8,6 +8,7 @@ import Avatar from "@/components/Avatar";
 import { useAuthStore } from "@/store/useAuthStore";
 import FriendButton from "@/components/FriendButton";
 import { useDebounce, useSearchProfiles, useSearchPosts } from "@/hooks/useSearch";
+import { useBlockedIds } from "@/hooks/useBlocks";
 import { getMemberByKey } from "@/lib/bts-members";
 import { getEraByKey } from "@/lib/bts-eras";
 import { formatDistanceToNow } from "date-fns";
@@ -21,8 +22,9 @@ export default function SearchPage() {
   const [tab, setTab] = useState<Tab>("usuarios");
   const debouncedQuery = useDebounce(query, 300);
 
-  const { data: profiles = [], isFetching: fetchingProfiles } = useSearchProfiles(debouncedQuery);
-  const { data: posts = [], isFetching: fetchingPosts } = useSearchPosts(debouncedQuery);
+  const { data: blockedIds = [] } = useBlockedIds();
+  const { data: profiles = [], isFetching: fetchingProfiles } = useSearchProfiles(debouncedQuery, blockedIds);
+  const { data: posts = [], isFetching: fetchingPosts } = useSearchPosts(debouncedQuery, blockedIds);
 
   const isSearching = fetchingProfiles || fetchingPosts;
   const hasQuery = debouncedQuery.length >= 2;

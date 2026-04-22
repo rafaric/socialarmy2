@@ -15,6 +15,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import Link from "next/link";
 import EraSelector from "@/components/EraSelector";
 import FriendButton from "@/components/FriendButton";
+import { useBlockUser, useUnblockUser, useIsBlocked } from "@/hooks/useBlocks";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Profile, Photo, TaggedFriend } from "@/types";
@@ -76,6 +77,9 @@ export default function ProfileView({
 
   const isOwn = profile.id === currentUserId;
   const tabs = isOwn ? OWN_TABS : BASE_TABS;
+  const iBlocked = useIsBlocked(profile.id);
+  const blockUser = useBlockUser();
+  const unblockUser = useUnblockUser();
 
 
   useEffect(() => { setActiveTab(tab); }, [tab]);
@@ -244,11 +248,42 @@ export default function ProfileView({
           />
         </div>
 
-        {!isOwn && <FriendButton targetId={profile.id} />}
+        {!isOwn && (
+          <div className="flex items-center gap-2">
+            {!iBlocked && <FriendButton targetId={profile.id} />}
+            {currentUserId && (
+              <button
+                type="button"
+                onClick={() => iBlocked
+                  ? unblockUser.mutate(profile.id)
+                  : blockUser.mutate(profile.id)
+                }
+                disabled={blockUser.isPending || unblockUser.isPending}
+                className="text-xs px-3 py-1.5 rounded-lg font-medium transition-all duration-200 border disabled:opacity-50"
+                style={{
+                  color: iBlocked ? "var(--text-primary)" : "var(--text-muted)",
+                  background: iBlocked ? "rgba(239,68,68,0.1)" : "rgba(255,255,255,0.05)",
+                  borderColor: iBlocked ? "rgba(239,68,68,0.3)" : "rgba(255,255,255,0.1)",
+                }}
+              >
+                {iBlocked ? "Bloqueado" : "Bloquear"}
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Tabs */}
-      <div role="tablist" aria-label="Secciones del perfil" className="flex border-t border-white/5 px-2">
+      {/* Perfil bloqueado — ocultamos todo el contenido */}
+      {iBlocked && (
+        <div className="py-16 flex flex-col items-center gap-3 text-center border-t border-white/5">
+          <span className="text-3xl">🚫</span>
+          <p className="text-sm font-medium text-[color:var(--text-primary)]">Contenido no disponible</p>
+          <p className="text-xs text-[color:var(--text-muted)] max-w-xs">Bloqueaste a este usuario. No podés ver su contenido mientras el bloqueo esté activo.</p>
+        </div>
+      )}
+
+      {/* Tabs + contenido — ocultos si el perfil está bloqueado */}
+      {!iBlocked && <><div role="tablist" aria-label="Secciones del perfil" className="flex border-t border-white/5 px-2">
         {tabs.map((t) => (
           <button
             key={t.key}
@@ -581,6 +616,7 @@ export default function ProfileView({
         )}
 
       </div>
+      </>}
 
       {/* Profile photos lightbox */}
       <AnimatePresence>

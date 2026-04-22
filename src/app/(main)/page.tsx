@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useProfile } from "@/hooks/useProfile";
 import { usePosts, useRealtimePosts } from "@/hooks/usePosts";
+import { useBlockedIds } from "@/hooks/useBlocks";
 import PostsCard from "@/components/PostsCard";
 import PostForm from "@/components/PostForm";
 import OnboardingModal from "@/components/OnboardingModal";
@@ -18,7 +19,8 @@ import { DEMO_USER_ID } from "@/lib/constants";
 export default function Home() {
   const { user } = useAuthStore();
   const { data: profile } = useProfile(user);
-  const { data: posts = [], isLoading, isError, error } = usePosts();
+  const { data: blockedIds = [] } = useBlockedIds();
+  const { data: posts = [], isLoading, isError, error } = usePosts(blockedIds);
   useRealtimePosts();
   const [activeEra, setActiveEra] = useState<string | null>(null);
   const [activeMember, setActiveMember] = useState<string | null>(null);
