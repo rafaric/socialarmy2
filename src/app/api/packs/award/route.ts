@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { rateLimit, buildKey } from "@/lib/rate-limit";
 
 const SUPER_ACTIVITIES = new Set(["post", "login_streak"]);
 
@@ -15,6 +16,15 @@ export async function POST(req: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const key = buildKey("packs/award", req, user.id);
+  if (!rateLimit(key, 5, 60_000)) {
+    console.warn("[rate_limit_exceeded] route=packs/award userId=%s", user.id);
+    return NextResponse.json(
+      { error: "Too many requests", retryAfter: 60 },
+      { status: 429, headers: { "Retry-After": "60" } }
+    );
+  }
 
   const { activity, ref_id } = await req.json().catch(() => ({}));
   if (!activity) return NextResponse.json({ error: "activity requerido" }, { status: 400 });

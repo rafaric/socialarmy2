@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit, buildKey } from "@/lib/rate-limit";
 
 async function getUser() {
   const supabase = await createClient();
@@ -24,6 +25,15 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const { supabase, user } = await getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const key = buildKey("blocks", req, user.id);
+  if (!rateLimit(key, 10, 60_000)) {
+    console.warn("[rate_limit_exceeded] route=blocks userId=%s", user.id);
+    return NextResponse.json(
+      { error: "Too many requests", retryAfter: 60 },
+      { status: 429, headers: { "Retry-After": "60" } }
+    );
+  }
 
   const { blocked_id } = await req.json().catch(() => ({}));
   if (!blocked_id) return NextResponse.json({ error: "blocked_id requerido" }, { status: 400 });

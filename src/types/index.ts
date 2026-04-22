@@ -123,3 +123,13 @@ export interface Notification {
 export interface SavedPost {
   post_id: string;
 }
+
+// Payload y respuestas de /api/friends/request
+export type FriendRequestPayload = { friend_id: string };
+export type FriendRequestResponse = { requestId: string };
+export type FriendRequestConflict = { error: string; status: "pending" | "accepted" };
+
+// Respuesta de /api/uploads/validate
+export type UploadValidateResponse =
+  | { valid: true; mime: string }
+  | { error: string };

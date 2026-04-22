@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { rateLimit, buildKey } from "@/lib/rate-limit";
 
 function normalizeSocialUrl(raw: string): string {
   try {
@@ -45,6 +46,15 @@ async function extractOgTags(url: string): Promise<{
 }
 
 export async function GET(req: NextRequest) {
+  const key = buildKey("unfurl", req, null);
+  if (!rateLimit(key, 10, 60_000)) {
+    console.warn("[rate_limit_exceeded] route=unfurl ip=%s", key.split(":ip:")[1] ?? "unknown");
+    return NextResponse.json(
+      { error: "Too many requests", retryAfter: 60 },
+      { status: 429, headers: { "Retry-After": "60" } }
+    );
+  }
+
   const raw = new URL(req.url).searchParams.get("url");
   if (!raw) return NextResponse.json({ error: "url requerida" }, { status: 400 });
 
