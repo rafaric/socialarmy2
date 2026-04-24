@@ -20,7 +20,12 @@ export interface CardResult {
   rarity: Rarity;
 }
 
-export interface UserCard {
+/**
+ * @deprecated Schema viejo (pre-migración trading). Usar `UserCard` de `@/types` en código nuevo.
+ * Mantenido para compatibilidad con PackOpener y CollectionOnboarding que aún leen el schema viejo
+ * de `user_cards` directamente vía Supabase client.
+ */
+export interface LegacyUserCard {
   id: string;
   card_id: string;
   for_trade: boolean;
@@ -57,8 +62,12 @@ export function useOpenPack() {
   });
 }
 
+/**
+ * @deprecated Usar `useInventory()` de `@/hooks/useInventory` para el nuevo schema stacked.
+ * Este hook mantiene el schema viejo para PackOpener y CollectionOnboarding.
+ */
 export function useCollection(userId: string | null) {
-  return useQuery<UserCard[]>({
+  return useQuery<LegacyUserCard[]>({
     queryKey: ["collection", userId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -67,7 +76,7 @@ export function useCollection(userId: string | null) {
         .eq("user_id", userId!)
         .order("obtained_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as unknown as UserCard[];
+      return (data ?? []) as unknown as LegacyUserCard[];
     },
     enabled: !!userId,
   });

@@ -34,9 +34,31 @@ export async function POST(
   const cardIds = await pickCards(db, pack.pack_type);
   if (cardIds.length === 0) return NextResponse.json({ error: "Sin cartas disponibles" }, { status: 503 });
 
-  // Insertar en colección del usuario
-  await db.from("user_cards").insert(
-    cardIds.map((card_id) => ({ user_id: user.id, card_id }))
+  // Contar duplicados dentro del sobre
+  const cardCounts = cardIds.reduce<Record<string, number>>((acc, id) => {
+    acc[id] = (acc[id] ?? 0) + 1;
+    return acc;
+  }, {});
+
+  // Leer quantities existentes para hacer incremento correcto
+  const { data: existing } = await db
+    .from("user_cards")
+    .select("card_definition_id, quantity")
+    .eq("user_id", user.id)
+    .in("card_definition_id", Object.keys(cardCounts));
+
+  const existingMap = Object.fromEntries(
+    (existing ?? []).map((r) => [r.card_definition_id, r.quantity])
+  );
+
+  await db.from("user_cards").upsert(
+    Object.entries(cardCounts).map(([card_definition_id, count]) => ({
+      user_id: user.id,
+      card_definition_id,
+      quantity: (existingMap[card_definition_id] ?? 0) + count,
+      locked_quantity: 0,
+    })),
+    { onConflict: "user_id,card_definition_id" }
   );
 
   // Marcar sobre como abierto

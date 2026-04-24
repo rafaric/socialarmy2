@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
+import { ArrowLeftRight, Heart, Clock, ShoppingBag, X as XIcon } from "lucide-react";
 import Avatar from "@/components/Avatar";
 import Link from "next/link";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -11,6 +12,11 @@ import {
   useMarkAllRead,
   useDeleteNotification,
 } from "@/hooks/useNotifications";
+import type { Notification } from "@/types";
+
+// ---------------------------------------------------------------------------
+// Labels de notificaciones existentes + tipos trading
+// ---------------------------------------------------------------------------
 
 const NOTIFICATION_LABELS: Record<string, { text: string; icon: string }> = {
   like:           { text: "le dio 💜 a tu post",          icon: "💜" },
@@ -20,7 +26,73 @@ const NOTIFICATION_LABELS: Record<string, { text: string; icon: string }> = {
   friend_accept:  { text: "aceptó tu solicitud de amistad",    icon: "✨" },
   poll_vote:      { text: "votó en tu encuesta",               icon: "📊" },
   poll_ended:     { text: "Tu encuesta finalizó",              icon: "🏁" },
+  // Trading system
+  trade_offer_received:   { text: "hizo una oferta por tu carta",           icon: "🔔" },
+  trade_offer_accepted:   { text: "tu oferta fue aceptada — conseguiste la carta", icon: "🎉" },
+  trade_offer_rejected:   { text: "tu oferta fue rechazada",                icon: "❌" },
+  wishlist_card_listed:   { text: "una carta de tu wishlist está en el mercado", icon: "💜" },
+  listing_expired:        { text: "tu listing expiró",                       icon: "⏰" },
+  trade_match_suggested:  { text: "match sugerido — alguien tiene lo que querés", icon: "🤝" },
 };
+
+// ---------------------------------------------------------------------------
+// Íconos lucide para tipos de trading (renderizado inline en lugar del emoji)
+// ---------------------------------------------------------------------------
+
+function TradingIcon({ type }: { type: string }) {
+  const iconClass = "w-3.5 h-3.5";
+  const color = "var(--accent)";
+
+  switch (type) {
+    case "trade_offer_received":
+      return <ArrowLeftRight className={iconClass} style={{ color }} />;
+    case "trade_offer_accepted":
+      return <ArrowLeftRight className={iconClass} style={{ color: "#4ade80" }} />;
+    case "trade_offer_rejected":
+      return <XIcon className={iconClass} style={{ color: "#f87171" }} />;
+    case "wishlist_card_listed":
+      return <Heart className={iconClass} style={{ color }} />;
+    case "listing_expired":
+      return <Clock className={iconClass} style={{ color: "#fb923c" }} />;
+    case "trade_match_suggested":
+      return <ShoppingBag className={iconClass} style={{ color }} />;
+    default:
+      return null;
+  }
+}
+
+const TRADING_TYPES = new Set([
+  "trade_offer_received",
+  "trade_offer_accepted",
+  "trade_offer_rejected",
+  "wishlist_card_listed",
+  "listing_expired",
+  "trade_match_suggested",
+]);
+
+/**
+ * Determina el href de navegación para una notificación.
+ * Para tipos de trading usa reference_id + reference_type.
+ * Para tipos legacy usa post_id o profile.
+ */
+function getNotificationHref(noti: Notification): string {
+  if (TRADING_TYPES.has(noti.notification_type)) {
+    if (noti.reference_type === "listing" && noti.reference_id) {
+      return `/market/${noti.reference_id}`;
+    }
+    if (noti.reference_type === "offer" && noti.reference_id) {
+      return `/market/my-listings`;
+    }
+    if (
+      noti.notification_type === "listing_expired" ||
+      noti.notification_type === "trade_offer_rejected"
+    ) {
+      return `/market/my-listings`;
+    }
+    return "/market";
+  }
+  return noti.post_id ? `/post/${noti.post_id}` : `/profile/${noti.profiles?.id}`;
+}
 
 export default function NotificationsPage() {
   const { user } = useAuthStore();
@@ -99,6 +171,10 @@ export default function NotificationsPage() {
           <AnimatePresence initial={false}>
             {notifications.map((noti, i) => {
               const meta = NOTIFICATION_LABELS[noti.notification_type] ?? { text: "interactuó con vos", icon: "✨" };
+              const isTrading = TRADING_TYPES.has(noti.notification_type);
+              const href = getNotificationHref(noti);
+              const tradingIcon = isTrading ? <TradingIcon type={noti.notification_type} /> : null;
+
               return (
                 <motion.div
                   key={noti.id}
@@ -122,24 +198,43 @@ export default function NotificationsPage() {
 
                   {/* Avatar + icon badge */}
                   <div className="relative shrink-0 z-10">
-                    <Link href={`/profile/${noti.profiles?.id}`}>
-                      <Avatar url={noti.profiles?.avatar ?? null} size="md" />
-                    </Link>
-                    <span className="absolute -bottom-0.5 -right-0.5 text-sm leading-none">
-                      {meta.icon}
-                    </span>
+                    {isTrading ? (
+                      /* Para notificaciones del sistema (trading), mostramos un ícono de trading en lugar de avatar */
+                      <div
+                        className="w-11 h-11 rounded-full flex items-center justify-center"
+                        style={{ background: "var(--accent-glow)", border: "1px solid var(--glass-border)" }}
+                      >
+                        {tradingIcon ?? <span className="text-base">{meta.icon}</span>}
+                      </div>
+                    ) : (
+                      <>
+                        <Link href={`/profile/${noti.profiles?.id}`}>
+                          <Avatar url={noti.profiles?.avatar ?? null} size="md" />
+                        </Link>
+                        <span className="absolute -bottom-0.5 -right-0.5 text-sm leading-none">
+                          {meta.icon}
+                        </span>
+                      </>
+                    )}
                   </div>
 
-                  {/* Text — clickable toward the post if post_id exists */}
+                  {/* Text — clickable con navegación según tipo */}
                   <Link
-                    href={noti.post_id ? `/post/${noti.post_id}` : `/profile/${noti.profiles?.id}`}
+                    href={href}
                     className="flex-1 min-w-0 hover:opacity-80 transition-opacity"
                   >
                     <p className="text-sm text-[color:var(--text-secondary)]">
-                      <span className="font-semibold text-[color:var(--text-primary)]">
-                        {noti.profiles?.name}
-                      </span>{" "}
-                      {meta.text}
+                      {isTrading ? (
+                        /* Notificaciones de trading: sin nombre de usuario (origen del sistema) */
+                        <span>{meta.text}</span>
+                      ) : (
+                        <>
+                          <span className="font-semibold text-[color:var(--text-primary)]">
+                            {noti.profiles?.name}
+                          </span>{" "}
+                          {meta.text}
+                        </>
+                      )}
                     </p>
                     <p className="text-xs text-[color:var(--text-muted)] mt-0.5">
                       Hace {formatDistanceToNow(new Date(noti.created_at), { locale: es })}
